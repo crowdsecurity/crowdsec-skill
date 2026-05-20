@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `references/operate/` — health check and audit guidance.
   - `references/appsec/` — AppSec/WAF troubleshooting.
   - `references/debug/` — triage and common errors.
-- Helper scripts:
-  - `scripts/collect-live.sh` — collect live diagnostics from a running engine.
-  - `scripts/parse-dump.sh` — parse a collected diagnostic dump.
+- Helper script:
+  - `scripts/diagnose.sh` — first-look triage; wraps `cscli support dump`
+    (auto-detecting systemd / Docker / Kubernetes) into a curated report.
 - Marketplace + plugin manifests under `.claude-plugin/`.
 
 [Unreleased]: https://github.com/buixor/crowdsec-skill/compare/v0.1.0...HEAD

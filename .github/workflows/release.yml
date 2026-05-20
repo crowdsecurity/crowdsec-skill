@@ -1,0 +1,99 @@
+name: release
+
+# Publishing a GitHub Release (tag vX.Y.Z) is the single source of truth for a
+# version bump. This workflow writes that version into both manifests and the
+# changelog so they can never drift, then commits the result back to main.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.2.0 (no leading v)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve version from tag or input
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            RAW="${{ github.event.release.tag_name }}"
+          else
+            RAW="${{ github.event.inputs.version }}"
+          fi
+          VERSION="${RAW#v}"
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::'$VERSION' is not valid semver (X.Y.Z)"
+            exit 1
+          fi
+          PREV=$(jq -r '.version' .claude-plugin/plugin.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Bump plugin.json
+        run: |
+          jq --arg v "${{ steps.ver.outputs.version }}" '.version = $v' \
+            .claude-plugin/plugin.json > tmp && mv tmp .claude-plugin/plugin.json
+
+      - name: Bump marketplace.json crowdsec entry
+        run: |
+          jq --arg v "${{ steps.ver.outputs.version }}" \
+            '.plugins |= map(if .name == "crowdsec" then .version = $v else . end)' \
+            .claude-plugin/marketplace.json > tmp && mv tmp .claude-plugin/marketplace.json
+
+      - name: Update CHANGELOG
+        env:
+          V: ${{ steps.ver.outputs.version }}
+          PREV: ${{ steps.ver.outputs.prev }}
+          DATE: ${{ steps.ver.outputs.date }}
+          REPO: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          # Insert a dated heading right under [Unreleased]; existing Unreleased
+          # notes fall under the new released section.
+          awk -v ver="$V" -v date="$DATE" '
+            /^## \[Unreleased\]/ && !done {
+              print
+              print ""
+              print "## [" ver "] - " date
+              done = 1
+              next
+            }
+            { print }
+          ' CHANGELOG.md > tmp && mv tmp CHANGELOG.md
+
+          # Refresh link references (best-effort; rewrite Unreleased + add tag link).
+          {
+            grep -v -E '^\[Unreleased\]:|^\['"$V"'\]:' CHANGELOG.md
+            echo "[Unreleased]: ${REPO}/compare/v${V}...HEAD"
+            echo "[${V}]: ${REPO}/compare/v${PREV}...v${V}"
+          } > tmp && mv tmp CHANGELOG.md
+
+      - name: Validate plugin
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude plugin validate .
+
+      - name: Commit bumped files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .claude-plugin/plugin.json .claude-plugin/marketplace.json CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore(release): v${{ steps.ver.outputs.version }}"
+            git push origin main
+          fi

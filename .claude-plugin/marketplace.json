@@ -4,6 +4,9 @@
     "name": "buixor",
     "url": "https://github.com/buixor"
   },
+  "metadata": {
+    "description": "CrowdSec skills and tooling for Claude Code — operational automation for installing, configuring, and debugging CrowdSec."
+  },
   "plugins": [
     {
       "name": "crowdsec",
