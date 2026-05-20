@@ -1,8 +1,8 @@
 {
-  "name": "buixor",
+  "name": "crowdsecurity",
   "owner": {
-    "name": "buixor",
-    "url": "https://github.com/buixor"
+    "name": "CrowdSec",
+    "url": "https://github.com/crowdsecurity"
   },
   "metadata": {
     "description": "CrowdSec skills and tooling for Claude Code — operational automation for installing, configuring, and debugging CrowdSec."
@@ -14,11 +14,11 @@
       "description": "Operational skill for installing, configuring, operating, and debugging CrowdSec (cscli, LAPI/CAPI, hub, bouncers, WAF/AppSec) across bare-metal, Docker, and Kubernetes.",
       "version": "0.1.0",
       "author": {
-        "name": "buixor",
-        "url": "https://github.com/buixor"
+        "name": "CrowdSec",
+        "url": "https://github.com/crowdsecurity"
       },
-      "homepage": "https://github.com/buixor/crowdsec-skill",
-      "repository": "https://github.com/buixor/crowdsec-skill",
+      "homepage": "https://github.com/crowdsecurity/crowdsec-skill",
+      "repository": "https://github.com/crowdsecurity/crowdsec-skill",
       "license": "MIT",
       "keywords": [
         "crowdsec",

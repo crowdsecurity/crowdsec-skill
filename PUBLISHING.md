@@ -1,9 +1,9 @@
 # Publishing & releasing the CrowdSec skill
 
 This is the runbook for cutting releases and distributing the skill across
-marketplaces. The source of truth is this repo (`buixor/crowdsec-skill`); the
-same plugin can be listed in several marketplaces with no conflict because each
-uses a distinct namespace (`@buixor`, `@claude-community`, `@crowdsec`).
+marketplaces. The source of truth is this repo (`crowdsecurity/crowdsec-skill`);
+the same plugin can be listed in several marketplaces with no conflict because
+each uses a distinct namespace (`@crowdsecurity`, `@claude-community`).
 
 ## Releasing a new version
 
@@ -37,14 +37,15 @@ which runs `claude plugin validate .` and fails if `plugin.json` and
 - `crowdsec/SKILL.md` frontmatter `name`/`description` are accurate.
 - `CHANGELOG.md` references only files that exist.
 
-## A. Maintainer marketplace (live now)
+## A. CrowdSec marketplace (live now)
 
-The repo already contains `.claude-plugin/marketplace.json` (`name: buixor`), so
-users can install today:
+This repo is the official CrowdSec marketplace: it contains
+`.claude-plugin/marketplace.json` (`name: crowdsecurity`) with the plugin served
+from `"source": "./"`, so users can install today:
 
 ```text
-/plugin marketplace add buixor/crowdsec-skill
-/plugin install crowdsec@buixor
+/plugin marketplace add crowdsecurity/crowdsec-skill
+/plugin install crowdsec@crowdsecurity
 ```
 
 ## B. Anthropic community marketplace
@@ -60,30 +61,7 @@ The public, Anthropic-curated catalog (`anthropics/claude-plugins-community`).
 Requirements: public repo, README + LICENSE present, `claude plugin validate`
 clean (it runs the same checks Anthropic's pipeline does).
 
-## C. CrowdSec-owned marketplace (future — owner-driven migration)
-
-Once we're happy with the results, move/duplicate distribution under the CrowdSec
-org. Two options:
-
-- **Reference the existing code repo** — create `crowdsecurity/claude-skills`
-  with a `.claude-plugin/marketplace.json` (`name: crowdsec`) whose plugin entry
-  uses a remote source:
-  ```json
-  { "source": { "source": "github", "repo": "buixor/crowdsec-skill" } }
-  ```
-- **Or move the code** under the org repo and use `"source": "./"`.
-
-One marketplace repo can list multiple plugins, so there's room to grow. Users:
-
-```text
-/plugin marketplace add crowdsecurity/claude-skills
-/plugin install crowdsec@crowdsec
-```
-
-Until this exists, keep the CrowdSec install lines in `README.md` marked
-"coming soon".
-
-## D. skills.sh (exploratory — verify first)
+## C. skills.sh (exploratory — verify first)
 
 `skills.sh` is a **third-party** community directory, not part of Anthropic's
 official tooling. Before advertising it in the README, confirm:

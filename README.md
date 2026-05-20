@@ -40,30 +40,23 @@ them across **bare-metal/systemd, Docker, and Kubernetes/Helm**.
 The skill loads automatically once installed — no flags, no setup. Just talk to
 Claude about CrowdSec.
 
-**From the maintainer marketplace (available now):**
+**From the CrowdSec marketplace (available now):**
 
 ```text
-/plugin marketplace add buixor/crowdsec-skill
-/plugin install crowdsec@buixor
+/plugin marketplace add crowdsecurity/crowdsec-skill
+/plugin install crowdsec@crowdsecurity
 ```
 
 Update later with:
 
 ```text
-/plugin marketplace update buixor
+/plugin marketplace update crowdsecurity
 ```
 
 **From the Anthropic community marketplace** _(once published)_:
 
 ```text
 /plugin install crowdsec@claude-community
-```
-
-**From the CrowdSec marketplace** _(coming soon)_:
-
-```text
-/plugin marketplace add crowdsecurity/claude-skills
-/plugin install crowdsec@crowdsec
 ```
 
 ## 💬 Example prompts
