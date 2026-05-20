@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🛡️ CrowdSec skill for Claude Code
+<img src="https://raw.githubusercontent.com/crowdsecurity/crowdsec-docs/main/crowdsec-docs/static/img/crowdsec_logo.png" alt="CrowdSec" width="280">
+
+# CrowdSec skill for Claude Code
 
 **Install, configure, operate, and debug [CrowdSec](https://www.crowdsec.net) — straight from your terminal, with Claude doing the heavy lifting.**
 
@@ -19,17 +21,15 @@ the WAF, or figure out why nothing's getting blocked — it knows the `cscli`
 commands, the config layout, the failure modes, and the safe way through each of
 them across **bare-metal/systemd, Docker, and Kubernetes/Helm**.
 
-It ships ~25 topic-specific reference docs and a diagnostic script, so Claude
-follows CrowdSec's real documentation instead of guessing.
 
-## ✨ What it covers
+## What it covers
 
 | Area | Covered |
 |---|---|
 | **Install** | bare-metal/systemd · Docker · Kubernetes/Helm · Console enrollment |
-| **Bouncers** | firewall (iptables/nftables/ipset) · nginx · traefik · caddy |
+| **Bouncers** | firewall (iptables/nftables/ipset) · nginx · traefik · caddy · apache · and more |
 | **WAF / AppSec** | deploy · configure · troubleshoot the AppSec component |
-| **Hub** | install collections/parsers/scenarios · update · tainted items |
+| **Hub** | install collections/parsers/scenarios · update · debug |
 | **Configure** | acquisition · profiles & ban durations · notifications · allowlists |
 | **Operate** | health checks & smoke tests · upgrades & rollback · multi-server / remote LAPI / mTLS |
 | **Debug** | logs not parsing · no alerts firing · bouncer not blocking · specific errors |
@@ -72,8 +72,8 @@ Once installed, Claude picks the skill up whenever your prompt involves CrowdSec
 
 - _"Install CrowdSec on this server and set up the nginx bouncer."_
 - _"Deploy CrowdSec in my Kubernetes cluster and enroll it in the Console."_
-- _"Enable the WAF / AppSec component in front of my app."_
-- _"My logs aren't being parsed — what's wrong?"_
+- _"Enable the WAF / AppSec on my server."_
+- _"CrowdSec doesn't detect attacks on my nginx server, why?"_
 - _"There's a decision for this IP but it's not being blocked."_
 - _"Migrate my fail2ban jails to CrowdSec."_
 
@@ -110,26 +110,11 @@ crowdsec-skill/
 a support dump (auto-detecting systemd / Docker / Kubernetes) and a curated
 report Claude can read.
 
-## 🏷️ Versioning
-
-Versioning lives at the **plugin level** — there is no `version` field in
-`SKILL.md`. The canonical source is [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json),
-and the project follows [Semantic Versioning](https://semver.org):
-
-- **patch** — doc/reference fixes
-- **minor** — a new coverage area or script
-- **major** — a breaking change to scope or structure
-
-Each release keeps four things in sync: the `plugin.json` version, the
-`marketplace.json` entry, the git tag `vX.Y.Z`, and a `CHANGELOG.md` entry. A
-GitHub Action does this automatically when a release is published — see
-[PUBLISHING.md](PUBLISHING.md).
-
 ## 🤝 Contributing
 
 Issues and PRs welcome. Improvements to the reference docs, new environment
 coverage, and sharper debug playbooks are especially appreciated. Run
-`claude plugin validate .` before opening a PR — CI runs the same check.
+`claude plugin validate .` before opening a PR.
 
 ## 🔗 Links
 
