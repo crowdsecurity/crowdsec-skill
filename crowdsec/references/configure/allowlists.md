@@ -72,8 +72,8 @@ Allowlists prevent **decisions** from being applied to specific IPs / CIDR range
 
 | Source | Marked as | How to manage |
 |---|---|---|
-| **Local** | `Managed by Console: false` in `cscli allowlists list` | `cscli allowlists {create,add,remove,delete,import}` on this engine |
-| **Console** | `Managed by Console: true` | CrowdSec Console UI — pushes to every engine enrolled to your console account. Read-only from `cscli`. |
+| **Local** | `Managed by Console: no` in `cscli allowlists list` | `cscli allowlists {create,add,remove,delete,import}` on this engine |
+| **Console** | `Managed by Console: yes` | CrowdSec Console UI — pushes to every engine enrolled to your console account. Read-only from `cscli`. |
 
 Console-managed allowlists are the recommended path for fleet-wide allowlists (office IPs, monitoring sources, CDN ranges). Local allowlists fit one-off cases.
 
@@ -142,35 +142,51 @@ Local only. Console-managed allowlists must be deleted in the Console UI.
 
 ## Interaction with active decisions
 
-Adding an IP to an allowlist does **not** retroactively delete an existing ban for that IP. The decision was already written; the allowlist only prevents *new* decisions. To unblock immediately:
+Adding an IP to an allowlist **does** delete existing decisions for that IP. The
+`cscli allowlists add` reports it:
 
 ```bash
-sudo cscli decisions delete -i 203.0.113.42
+$ sudo cscli allowlists add office 203.0.113.42
+added 1 values to allowlist office
+1 decisions deleted by allowlists
 ```
 
-…then add the IP to the allowlist so it doesn't get banned again.
+So allowlisting both stops *new* decisions and clears *existing* ones in a single
+step — no separate `cscli decisions delete` needed for the LAPI side. (Bouncers
+that already pulled the decision may keep enforcing until their next poll; see
+[When allowlists silently fail to apply](#when-allowlists-silently-fail-to-apply).)
+
+Conversely, `cscli decisions add` **refuses** to ban an IP that is already
+allowlisted:
+
+```bash
+$ sudo cscli decisions add -i 203.0.113.42 --duration 5m --reason "test ban"
+Error: 203.0.113.42 is allowlisted by item 203.0.113.42 from office (...), use --bypass-allowlist to add the decision anyway
+```
+
+Pass `--bypass-allowlist` to force the decision through anyway.
 
 ## Verification — does the allowlist actually work?
 
-**TL;DR:** add an IP to an allowlist, delete its existing decision, re-trigger
-the scenario, confirm no new decision appears. Full sequence:
+**TL;DR:** add an IP to an allowlist, confirm its existing decision is cleared,
+then confirm a new ban can't be created. Full sequence:
 
 ```bash
 # 1. Pick a victim IP and add a decision manually
 sudo cscli decisions add -i 192.0.2.99 --duration 5m --reason "test ban"
 sudo cscli decisions list | grep 192.0.2.99    # decision exists, bouncer would block
 
-# 2. Add it to an allowlist
+# 2. Add it to an allowlist — this deletes the existing decision in the same step
 sudo cscli allowlists create test
-sudo cscli allowlists add test 192.0.2.99
+sudo cscli allowlists add test 192.0.2.99       # prints "1 decisions deleted by allowlists"
 
-# 3. Decision still exists (allowlists are not retroactive)
-sudo cscli decisions list | grep 192.0.2.99    # still present
+# 3. Decision is now gone
+sudo cscli decisions list | grep 192.0.2.99    # empty — allowlist cleared the ban
 
-# 4. Trigger the scenario again — confirm no new decision is written
-sudo cscli decisions delete -i 192.0.2.99
-# … repeat the attack that caused the ban …
-sudo cscli decisions list | grep 192.0.2.99    # empty — allowlist suppressed the new ban
+# 4. Confirm a new ban is suppressed — a manual add is now refused outright
+sudo cscli decisions add -i 192.0.2.99 --duration 5m --reason "retest"
+# Error: ... is allowlisted by item ... use --bypass-allowlist to add the decision anyway
+# (re-triggering the scenario from logs is silently dropped the same way)
 
 # 5. Tidy up
 sudo cscli allowlists delete test
