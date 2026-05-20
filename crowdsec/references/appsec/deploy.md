@@ -52,14 +52,14 @@ source: appsec
 
 ### 3 — Create a bouncer API key
 
-Each bouncer that talks to AppSec needs its own key.
+Each bouncer that talks to AppSec needs its own key. The key authenticates **both** decision pulls from LAPI and AppSec forwarding for that bouncer — same key, two purposes.
 
 ```bash
 sudo cscli bouncers add my-appsec-bouncer
 # prints the key — save it
 ```
 
-The key authenticates **both** decision pulls from LAPI and AppSec forwarding for that bouncer. Same key, two purposes.
+> **Skip this step for the nginx bouncer.** The `crowdsec-nginx-bouncer` package self-registers its own bouncer and key on install (see [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md)). Creating a key here too just leaves an orphan in `cscli bouncers list`. Only create a key manually for the smoke test below, or for bouncers that don't auto-register.
 
 ### 4 — Reload and verify the listener
 
@@ -111,7 +111,7 @@ The smoke test above proves the WAF works. For production you point a real bounc
 
 | Bouncer | Where to set the AppSec endpoint |
 |---|---|
-| `crowdsec-nginx-bouncer` (lua module) | `appsec_url` in the bouncer's config; AppSec key in `api_key`. |
+| `crowdsec-nginx-bouncer` (lua module) | `APPSEC_URL=http://127.0.0.1:7422` in `/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf` (shell-style `KEY=VALUE`, empty by default = WAF off). The self-registered `API_KEY` already serves AppSec — reuse it. |
 | `crowdsec-traefik-bouncer` (middleware plugin) | `crowdsec.appsec.enabled: true`, `crowdsec.appsec.url`, and the AppSec-aware API key in `crowdsec.crowdsecLapiKey`. |
 | `crowdsec-caddy-bouncer` (Caddy module) | Equivalent `appsec_url` directive on the bouncer block. |
 | Any other AppSec-aware bouncer | Look for an `appsec_url` / `appsec.url` field; auth is always the bouncer's existing API key. |

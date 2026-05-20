@@ -51,7 +51,7 @@ If nothing matches and the user reports CrowdSec is installed, ask where: a vend
 | "whitelist vs allowlist vs postoverflow", "which suppression layer should I use" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms |
 | "alert me on slack/email/webhook" | [references/configure/notifications.md](./references/configure/notifications.md) *(TODO — stub)* |
 | "block at the firewall", "iptables", "nftables", "ipset" | [references/configure/bouncers/firewall.md](./references/configure/bouncers/firewall.md) |
-| "nginx / traefik / caddy bouncer" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) *(TODO — stub)* |
+| "nginx / traefik / caddy bouncer" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) |
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
 | "upgrade", "back up", "roll back" | [references/operate/upgrades.md](./references/operate/upgrades.md) *(TODO — stub)* |
