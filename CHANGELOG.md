@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-20
+
 ## [0.1.0] - 2026-05-19
 
 ### Added
@@ -24,4 +26,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Marketplace + plugin manifests under `.claude-plugin/`.
 
 [Unreleased]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/crowdsecurity/crowdsec-skill/releases/tag/v0.1.0
+[0.1.0]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.0...v0.1.0
