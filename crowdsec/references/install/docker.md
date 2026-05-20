@@ -55,8 +55,16 @@ simply doesn't appear in the metrics (the agent log carries a
 Verify with `docker exec crowdsec cscli metrics show acquisition`.
 
 To read *other containers'* logs instead of host files, use the built-in Docker
-datasource (`datasource_docker` is compiled in): mount the docker socket
-(`/var/run/docker.sock:/var/run/docker.sock:ro`) and add an acquisition like
+datasource (`datasource_docker` is compiled in). This requires mounting the
+Docker socket (`/var/run/docker.sock:/var/run/docker.sock:ro`) and adding an
+acquisition like:
+
+> [!WARNING]
+> Mounting `/var/run/docker.sock` gives the container root-equivalent control
+> over the Docker host, even when mounted `:ro`. Only do this on trusted hosts.
+> If possible, prefer lower-privilege alternatives such as mounting specific
+> log files, using a least-privileged log shipper, or running CrowdSec outside
+> Docker.
 
 ```yaml
 # acquis.d/docker.yaml
