@@ -1,12 +1,24 @@
-# Bouncers — Web servers (nginx, Traefik, Caddy)
+# Bouncers — Web servers (nginx, haproxy, apache, Traefik, Caddy)
 
-Canonical docs: <https://docs.crowdsec.net/u/bouncers/intro> (per-bouncer pages: nginx, traefik, caddy)
+Canonical docs: <https://docs.crowdsec.net/u/bouncers/intro> (per-bouncer pages: nginx, haproxy, apache, traefik, caddy)
 
 A web-server bouncer enforces two things at the edge:
 1. **LAPI decisions** — IPs banned by scenarios/CTI get a 403 (or captcha).
 2. **AppSec/WAF** (optional) — each request is forwarded to the AppSec listener for inline inspection before it reaches the backend.
 
 Both are served by the **same bouncer API key**. Wiring the WAF is just pointing the bouncer's AppSec URL at the `:7422` listener — see [../../appsec/deploy.md](../../appsec/deploy.md).
+
+## Pick your bouncer
+
+Jump to the section for your web server. The shared model above (decisions + optional WAF, one key) and the stream-lag / real-IP pitfalls recur across all of them.
+
+| Section | Package / module | WAF (AppSec)? |
+|---|---|---|
+| § nginx | `crowdsec-nginx-bouncer` (lua) | ✅ |
+| § haproxy | `crowdsec-haproxy-spoa-bouncer` (SPOA) | ✅ |
+| § apache | `crowdsec-apache2-bouncer` (`mod_crowdsec`) | ❌ decisions only |
+| § Traefik | `crowdsec-bouncer-traefik-plugin` (Yaegi middleware) | ✅ |
+| § Caddy | `caddy-crowdsec-bouncer` (compiled-in module) | ✅ |
 
 ## nginx — `crowdsec-nginx-bouncer`
 
@@ -217,25 +229,130 @@ sudo cscli decisions delete --ip 127.0.0.1
 - **No WAF:** there is no AppSec path for the apache bouncer. To run the CrowdSec WAF in front of apache, terminate with nginx/haproxy SPOA (which forward to `:7422`) ahead of apache, or use a firewall bouncer for IP-level blocking.
 - **Early version:** apache bouncer is v0.1 — expect rough edges like the unsubstituted key above.
 
-## Traefik — `crowdsec-traefik-bouncer`
+## Traefik — `crowdsec-bouncer-traefik-plugin`
 
-Middleware plugin (Yaegi) or a standalone bouncer container. Per the canonical page, AppSec is wired via `crowdsec.appsec.enabled` + `crowdsec.appsec.url`, with the AppSec-aware key in `crowdsec.crowdsecLapiKey`. Follow the canonical [Traefik bouncer page](https://docs.crowdsec.net/u/bouncers/intro).
+WAF-capable. The canonical Traefik integration is the community middleware plugin
+**[`maxlerebourg/crowdsec-bouncer-traefik-plugin`](https://github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin)**
+(loaded via Traefik's Yaegi engine — no separate binary). It checks LAPI decisions and,
+optionally, forwards each request to the AppSec listener.
+
+### Load the plugin (static config)
+
+```yaml
+# traefik.yml (static)
+experimental:
+  plugins:
+    bouncer:
+      moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      version: v1.6.0
+```
+
+### Configure the middleware (dynamic config)
+
+The bouncer needs a LAPI key. With the official CrowdSec container, set a fixed key via
+`BOUNCER_KEY_traefik: <key>` in its env (auto-registers on start); on bare-metal LAPI mint
+one with `cscli bouncers add traefik -o raw`.
+
+```yaml
+# dynamic config (file provider) — same key serves LAPI decisions AND AppSec
+http:
+  middlewares:
+    crowdsec:
+      plugin:
+        bouncer:
+          enabled: true
+          crowdsecMode: stream                 # poll the full decision list (recommended)
+          updateIntervalSeconds: 10            # stream poll cadence; a new ban lands within this
+          crowdsecLapiKey: <bouncer-key>
+          crowdsecLapiScheme: http
+          crowdsecLapiHost: crowdsec:8080      # service:port on the Docker network
+          crowdsecAppsecEnabled: true          # turn on inline WAF
+          crowdsecAppsecHost: crowdsec:7422    # AppSec listener (must listen 0.0.0.0:7422)
+          forwardedHeadersTrustedIPs:
+            - "172.16.0.0/12"                  # the proxy/LB hop(s) in front, if any
+  routers:
+    whoami:
+      rule: "PathPrefix(`/`)"
+      service: whoami
+      middlewares: [crowdsec]
+```
+
+| Key | Set to | Notes |
+|---|---|---|
+| `crowdsecMode` | `stream` | `live` = query LAPI per request; `stream` = poll list (lower latency, prod default); `appsec` = WAF only; `none`/`alone`. |
+| `crowdsecLapiKey` | (bouncer key) | Serves both decisions and AppSec. |
+| `crowdsecLapiHost` | `crowdsec:8080` | Host:port, no scheme (scheme is `crowdsecLapiScheme`). |
+| `crowdsecAppsecEnabled` | `false` | **WAF is off by default.** `true` to forward requests to AppSec. |
+| `crowdsecAppsecHost` | `crowdsec:7422` | AppSec must `listen_addr: 0.0.0.0:7422` so the Traefik container can reach it. |
+| `forwardedHeadersTrustedIPs` | `[]` | Plugin-side trust for `X-Forwarded-For`. **Not sufficient alone — see real-IP pitfall.** |
+| `clientTrustedIPs` | `[]` | IPs that **bypass the bouncer entirely**. Do **not** put your proxy/Docker range here or every request is allowed. |
+
+### Real client IP — the #1 Traefik gotcha
+
+Traefik **rewrites `X-Forwarded-For` to the immediate peer** unless the *entrypoint* trusts
+that hop. Without it, the plugin only ever sees the proxy/Docker-gateway IP, so bans on the
+real client never match. Set it on the entrypoint **in addition to** the plugin option:
+
+```yaml
+# traefik.yml (static)
+entryPoints:
+  web:
+    address: ":80"
+    forwardedHeaders:
+      trustedIPs:
+        - "172.16.0.0/12"      # the upstream proxy/LB (or Docker network) in front of Traefik
+```
+
+### Verify end-to-end (through Traefik, not directly to LAPI/:7422)
+
+```bash
+curl -sS -o /dev/null -w 'normal:       %{http_code}\n' http://127.0.0.1:8081/                                                      # 200
+curl -sS -o /dev/null -w 'appsec block: %{http_code}\n' 'http://127.0.0.1:8081/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'  # 403
+# ban an IP, wait one stream interval, present it as the forwarded client:
+docker exec crowdsec cscli decisions add --ip 198.51.100.123 --duration 5m --reason test
+sleep 12                                                                                  # updateIntervalSeconds=10
+curl -sS -o /dev/null -w 'banned XFF:   %{http_code}\n' -H 'X-Forwarded-For: 198.51.100.123' http://127.0.0.1:8081/  # 403
+curl -sS -o /dev/null -w 'clean XFF:    %{http_code}\n' -H 'X-Forwarded-For: 203.0.113.5'   http://127.0.0.1:8081/  # 200
+docker exec crowdsec cscli decisions delete --ip 198.51.100.123
+docker exec crowdsec cscli metrics show appsec     # Processed/Blocked increment
+```
+
+### Pitfalls
+
+- **Real IP rewritten:** if bans never match, you almost certainly skipped the *entrypoint*
+  `forwardedHeaders.trustedIPs` above. The plugin's `forwardedHeadersTrustedIPs` is a second,
+  separate layer — you usually need both.
+- **`clientTrustedIPs` bypass:** anything in this list skips the bouncer. Putting your Docker
+  range here makes every request return 200 (no AppSec, no ban). Use `forwardedHeadersTrustedIPs`
+  for proxy trust, not this.
+- **WAF off silently:** `crowdsecAppsecEnabled` defaults to `false`, and AppSec must listen on
+  `0.0.0.0:7422` (not loopback) for a containerized Traefik to reach it.
+- **`stream` lag:** a fresh ban lands within `updateIntervalSeconds`; immediate ban-then-curl
+  looks like a failure. (See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md).)
 
 ## Caddy — `github.com/hslatman/caddy-crowdsec-bouncer`
 
-Community Caddy module. No pre-built package — must be compiled with `xcaddy`. This is the correct path when the standard nginx bouncer is not available (e.g. OPNsense/FreeBSD where nginx has no Lua module).
+WAF-capable Caddy module ([`hslatman/caddy-crowdsec-bouncer`](https://github.com/hslatman/caddy-crowdsec-bouncer)).
+Caddy has no plugin loader, so the module must be **compiled in** — build a custom binary/image
+with `xcaddy`.
 
-### Build
+### Build with the module
 
-```bash
-# Install xcaddy (requires Go)
-go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+**Docker / Linux (Dockerfile):**
 
-# Build caddy with the bouncer
-xcaddy build --with github.com/hslatman/caddy-crowdsec-bouncer
+```dockerfile
+FROM caddy:2.10-builder AS builder
+RUN xcaddy build \
+    --with github.com/hslatman/caddy-crowdsec-bouncer/http \
+    --with github.com/hslatman/caddy-crowdsec-bouncer/appsec
+FROM caddy:2.10
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 ```
 
-On **FreeBSD/OPNsense** (no Go in base):
+(`/http` enforces decisions; `/appsec` adds the WAF handler. Add `/layer4` only for L4
+proxying.) Mint a bouncer key with `cscli bouncers add caddy -o raw`.
+
+**FreeBSD/OPNsense** (no Go in base, no Docker):
 
 ```bash
 # Download Go binary for freebsd-amd64
@@ -253,7 +370,34 @@ GOPATH=$HOME/go $HOME/go/bin/xcaddy build \
 sudo cp /tmp/caddy-cs /usr/local/bin/caddy-cs
 ```
 
-### Config (JSON API — recommended for programmatic use)
+### Caddyfile
+
+```caddyfile
+{
+  crowdsec {
+    api_url http://crowdsec:8080
+    api_key <bouncer-key>
+    appsec_url http://crowdsec:7422   # omit to run decisions-only (no WAF)
+    ticker_interval 10s               # stream poll cadence
+    #disable_streaming                # switch to live (per-request) lookups
+    #enable_hard_fails                # fail-closed if LAPI is unreachable (default fails open)
+  }
+  servers {
+    trusted_proxies static 172.16.0.0/12   # real-IP: trust the upstream hop
+    client_ip_headers X-Forwarded-For
+  }
+}
+
+:80 {
+  route {
+    appsec            # WAF inspection first
+    crowdsec          # then LAPI decision enforcement
+    reverse_proxy whoami:80
+  }
+}
+```
+
+### Config (JSON API — for OPNsense/FreeBSD or programmatic use)
 
 The bouncer exposes two handlers and one top-level app:
 
@@ -302,7 +446,7 @@ The bouncer exposes two handlers and one top-level app:
 
 ```bash
 # AppSec block (CVE-2017-9841) → 403
-curl -sS -o /dev/null -w 'waf: %{http_code}\n' \
+curl -sS -o /dev/null -w 'appsec block: %{http_code}\n' \
     'http://<host-ip>:8080/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'
 
 # LAPI ban block
@@ -318,7 +462,11 @@ cscli metrics show appsec   # confirm processed/blocked counters
 ### Pitfalls
 
 - **`crowdsec-caddy-bouncer` / `crowdsecurity/caddy-cs-bouncer` do not exist** — these names return 404 on GitHub and pkg.go.dev. The correct module is `github.com/hslatman/caddy-crowdsec-bouncer`.
+- **Module not compiled in:** the stock `caddy` image has no `crowdsec` directive — Caddy errors on the Caddyfile. You must `xcaddy build` (above) or use a prebuilt image that bundles the module.
 - **xcaddy needs `git`** — the build fails with "git not found" on a minimal FreeBSD install. `sudo pkg install -y git` first.
 - **Build to `/tmp`, then copy** — xcaddy may not have write access to `/usr/local/bin` directly; build to `/tmp/caddy-cs`, then `sudo cp`.
-- **AppSec 0 processed** — missing `appsec` handler in the route (see the two-handler note above).
+- **Real IP:** without `trusted_proxies` + `client_ip_headers`, Caddy treats the proxy/Docker hop as the client and bans never match. Set both in the global `servers` block.
+- **Handler order:** put `appsec` before `crowdsec` in the route so WAF inspection runs ahead of decision enforcement.
+- **WAF off:** omit `appsec_url` and the module enforces decisions only. AppSec must listen on `0.0.0.0:7422` for a containerized Caddy to reach it.
 - **LAPI port conflict** — see [../../appsec/deploy.md](../../appsec/deploy.md) § OPNsense / FreeBSD: LAPI port conflict.
+

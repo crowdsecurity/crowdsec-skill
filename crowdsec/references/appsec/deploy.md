@@ -112,7 +112,7 @@ The smoke test above proves the WAF works. For production you point a real bounc
 | Bouncer | Where to set the AppSec endpoint |
 |---|---|
 | `crowdsec-nginx-bouncer` (lua module) | `APPSEC_URL=http://127.0.0.1:7422` in `/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf` (shell-style `KEY=VALUE`, empty by default = WAF off). The self-registered `API_KEY` already serves AppSec — reuse it. |
-| `crowdsec-traefik-bouncer` (middleware plugin) | `crowdsec.appsec.enabled: true`, `crowdsec.appsec.url`, and the AppSec-aware API key in `crowdsec.crowdsecLapiKey`. |
+| Traefik (`maxlerebourg/crowdsec-bouncer-traefik-plugin`) | Flat plugin options: `crowdsecAppsecEnabled: true` (default false), `crowdsecAppsecHost: crowdsec:7422` (host:port, no scheme), and the bouncer key in `crowdsecLapiKey`. Full recipe in [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Traefik. |
 | `github.com/hslatman/caddy-crowdsec-bouncer` (Caddy module) | Two handlers required in the Caddy route — **`appsec` AND `crowdsec`** (see critical note below). The `appsec_url` field goes in the top-level `crowdsec` app config block. |
 | Any other AppSec-aware bouncer | Look for an `appsec_url` / `appsec.url` field; auth is always the bouncer's existing API key. |
 

@@ -57,17 +57,22 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | Cue from user | Go to |
 |---|---|
 | "install", "set up", "fresh box", "how do I start" | [references/install/](./references/install/) (pick file by env) |
-| "configure logs / acquisition", "read journald / syslog / docker logs" | [references/configure/acquisition.md](./references/configure/acquisition.md) *(TODO — stub)* |
-| "install a collection / parser / scenario", "hub", "tainted" | [references/configure/hub.md](./references/configure/hub.md) *(TODO — stub)* |
-| "ban duration", "captcha", "decisions", "simulation" | [references/configure/profiles.md](./references/configure/profiles.md) *(TODO — stub)* |
+| "configure logs / acquisition", "read journald / syslog / docker logs" | [references/configure/acquisition.md](./references/configure/acquisition.md) |
+| "install a collection / parser / scenario", "hub", "tainted" | [references/configure/hub.md](./references/configure/hub.md) |
+| "ban duration", "captcha", "decisions", "simulation", "alerts but no bans" | [references/configure/profiles.md](./references/configure/profiles.md) |
 | "allowlist my office / CDN / monitoring IP", "I'm getting blocked by CAPI", "exclude IP from any ban" | [references/configure/allowlists.md](./references/configure/allowlists.md) |
 | "whitelist vs allowlist vs postoverflow", "which suppression layer should I use" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms |
 | "alert me on slack/email/webhook" | [references/configure/notifications.md](./references/configure/notifications.md) *(TODO — stub)* |
 | "block at the firewall", "iptables", "nftables", "ipset" | [references/configure/bouncers/firewall.md](./references/configure/bouncers/firewall.md) |
-| "nginx / traefik / caddy bouncer" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) |
+| "nginx bouncer", "lua / openresty module" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § nginx |
+| "haproxy bouncer", "SPOA / SPOE" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § haproxy |
+| "apache bouncer", "mod_crowdsec" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § apache |
+| "traefik bouncer", "traefik plugin / middleware" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § Traefik |
+| "caddy bouncer", "caddy module / xcaddy" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § Caddy |
+| "wrong source IP", "real client IP", "behind Cloudflare / reverse proxy / NPM", "X-Forwarded-For", "everyone shows as the proxy IP" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) — per-bouncer real-IP/trusted-proxy sections |
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
-| "upgrade", "back up", "roll back" | [references/operate/upgrades.md](./references/operate/upgrades.md) *(TODO — stub)* |
+| "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
 | "it's broken" / "not working" / general diagnosis | [references/debug/triage.md](./references/debug/triage.md) → run `~/.claude/skills/crowdsec/scripts/diagnose.sh` |
@@ -110,7 +115,7 @@ These work in every environment. On bare-metal/systemd, prefix with `sudo` (unle
 | Replay a single log line | `cscli explain --log '<line>' --type <type>` |
 | Validate config after editing any yaml (acquisition/profiles/config) | `crowdsec -t` (bare-metal; also auto-runs on `systemctl reload`) — then confirm the source reads with `cscli metrics show acquisition` |
 | See simulation state (alerts but no decisions) | `cscli simulation status` |
-| List decision profiles (filters / ban duration) | `cscli profiles list` — full content in `/etc/crowdsec/profiles.yaml` |
+| Inspect decision profiles (filters / ban duration) | `cat /etc/crowdsec/profiles.yaml` — there is **no** `cscli profiles` command (through v1.7.8); see [references/configure/profiles.md](./references/configure/profiles.md) |
 
 Where things live on a default bare-metal install:
 

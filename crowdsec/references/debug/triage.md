@@ -79,7 +79,7 @@ cscli decisions list
 ```
 
 - **No active alerts** → step 3 lied about overflows, or LAPI write failed. Check `tail -n 200 /var/log/crowdsec_api.log` for `database is locked` / disk-full / migration errors.
-- **Alerts exist, no decisions** → check `cscli profiles list` and `/etc/crowdsec/profiles.yaml` — the profile filter may not match, or the duration is `0s`. See [../configure/profiles.md](../configure/profiles.md).
+- **Alerts exist, no decisions** → inspect `/etc/crowdsec/profiles.yaml` (there is no `cscli profiles` command) — the profile filter may not match, or the duration is `0s`. See [../configure/profiles.md](../configure/profiles.md).
 - **Decisions exist** → continue to step 5.
 
 ### 4½. Is the IP allowlisted?
