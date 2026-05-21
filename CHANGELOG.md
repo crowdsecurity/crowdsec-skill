@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-21
+
 ### Added
 - `references/configure/acquisition.md` — file/journald/docker datasources, the
   `labels.type` model, verification with `crowdsec -t` / `cscli metrics show acquisition`
@@ -48,5 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (auto-detecting systemd / Docker / Kubernetes) into a curated report.
 - Marketplace + plugin manifests under `.claude-plugin/`.
 
-[Unreleased]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.0...v0.1.0
+[Unreleased]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/crowdsecurity/crowdsec-skill/compare/v0.1.0...v0.1.1
