@@ -5,8 +5,6 @@ description: Use when the user is installing, configuring, operating, or debuggi
 
 # CrowdSec — operations, deployment, configuration, and debugging
 
-This skill is the **operational layer** for CrowdSec.
-
 **Glossary:** *AppSec* is the engine component name (in configs, hub paths,
 `cscli appsec-*`, Helm workload); *WAF* is the user-facing term for the same
 thing. This skill uses both interchangeably.

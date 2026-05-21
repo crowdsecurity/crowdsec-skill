@@ -2,6 +2,8 @@
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/appsec/troubleshooting> · FAQ <https://docs.crowdsec.net/docs/next/appsec/faq> · benchmark <https://docs.crowdsec.net/docs/next/appsec/benchmark>
 
+Commands below are written for **bare-metal** (`sudo cscli …`). In docker, prefix with `docker exec <name>`; in k8s, `kubectl exec -n <ns> <pod> --`.
+
 Run [`scripts/diagnose.sh`](../../scripts/diagnose.sh) first — it includes the AppSec metrics table, the appsec acquisition source, and recent log lines, which together cover most of what's below. Then narrow with the headings here.
 
 ## 1. Engine refuses to start (or reload fails) after enabling AppSec

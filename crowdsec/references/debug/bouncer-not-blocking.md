@@ -41,7 +41,7 @@ sudo cscli bouncers list
 ```
 
 Check the **Last API pull** column is recent (within the bouncer's
-`update_frequency`). Verified default for the firewall bouncer is `10s`, so a
+`update_frequency`). The default for the firewall bouncer is `10s`, so a
 brand-new decision takes up to ~10 s to reach the firewall — *not* instant.
 "Not blocking" immediately after `decisions add` is usually just this latency;
 wait one poll interval and retest.
@@ -74,7 +74,7 @@ bouncer and LAPI (common with remote/containerised LAPI). 403/401 = key (step 3)
 
 ## 5 — Per-bouncer specifics
 
-**Firewall bouncer** (verified mechanics):
+**Firewall bouncer**:
 
 ```bash
 sudo nft list table ip crowdsec        # sets + chains exist?

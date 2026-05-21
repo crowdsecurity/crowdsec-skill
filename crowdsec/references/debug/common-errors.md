@@ -8,8 +8,7 @@ prefix with `docker exec <name>`; in k8s, `kubectl exec -n <ns> <pod> --`.
 Use this when you have a specific error string. For general "something's
 broken, where do I start" diagnosis, go to [triage.md](./triage.md) first.
 
-Match the error string the engine/bouncer printed to the row below. Entries
-marked *(verified)* were reproduced on a live 1.7.x box during skill testing.
+Match the error string the engine/bouncer printed to the row below.
 
 > **Catch config errors before they take the service down.** `crowdsec.service`
 > runs `crowdsec -t` as `ExecStartPre` *and* on `systemctl reload`. Run it
@@ -23,8 +22,8 @@ marked *(verified)* were reproduced on a live 1.7.x box during skill testing.
 
 | Error string | Cause | Fix |
 |---|---|---|
-| *(verified)* `datasource of type appsec: … cannot parse appsec configuration: [2:3] cannot unmarshal []interface {} into Go struct field Configuration.AppsecConfig of type string` | `appsec_config:` (singular) given a **list** | Use the **plural** key `appsec_configs:` for a list; singular takes one string. See [../appsec/configure.md](../appsec/configure.md). |
-| *(verified)* `unable to initialize inband engine : invalid WAF config from string: failed to compile the directive "secrule": duplicated rule id 100` | Two appsec-configs on one listener pull the **same** underlying rule (e.g. both include `base-config`/`vpatch-*`) | Use non-overlapping configs, or just `crowdsecurity/appsec-default` alone. See [../appsec/configure.md](../appsec/configure.md). |
+| `datasource of type appsec: … cannot parse appsec configuration: [2:3] cannot unmarshal []interface {} into Go struct field Configuration.AppsecConfig of type string` | `appsec_config:` (singular) given a **list** | Use the **plural** key `appsec_configs:` for a list; singular takes one string. See [../appsec/configure.md](../appsec/configure.md). |
+| `unable to initialize inband engine : invalid WAF config from string: failed to compile the directive "secrule": duplicated rule id 100` | Two appsec-configs on one listener pull the **same** underlying rule (e.g. both include `base-config`/`vpatch-*`) | Use non-overlapping configs, or just `crowdsecurity/appsec-default` alone. See [../appsec/configure.md](../appsec/configure.md). |
 | `no appsec-rules found for pattern <name>` | A bare appsec-config was installed without its rules; engine expands globs at load, `cscli` does not | Install via the **collection** (`cscli collections install crowdsecurity/appsec-virtual-patching`), which pulls the rule graph. See [../appsec/deploy.md](../appsec/deploy.md). |
 | `no such datasource` / source type unknown | `source:`/`labels.type:` typo or a datasource the build doesn't support | Fix the key in the `acquis.d/*.yaml`; `crowdsec -t` points at the file:line. |
 | Source reads lines but **0 parsed** | `type:` label doesn't match any installed parser | [parsing.md](./parsing.md). |
@@ -34,7 +33,7 @@ marked *(verified)* were reproduced on a live 1.7.x box during skill testing.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `permission denied` opening a log file; or source present but 0 lines read | `crowdsec` user can't read the file | `sudo -u crowdsec head <path>`; fix ownership/ACL. If that user *can* read it but the engine still can't, it's **SELinux/AppArmor** — `ausearch -m avc -ts recent` / `dmesg | grep DENIED`, then relabel/add policy (don't disable enforcement). |
-| *(verified)* apt install of a bouncer hangs: `Failed to open terminal … debconf: whiptail output the above errors, giving up!` | A debconf dialog (e.g. pending-kernel notice) on a non-interactive shell | Re-run with `sudo DEBIAN_FRONTEND=noninteractive apt install -y …`. |
+| apt install of a bouncer hangs: `Failed to open terminal … debconf: whiptail output the above errors, giving up!` | A debconf dialog (e.g. pending-kernel notice) on a non-interactive shell | Re-run with `sudo DEBIAN_FRONTEND=noninteractive apt install -y …`. |
 
 ## LAPI / CAPI / auth
 

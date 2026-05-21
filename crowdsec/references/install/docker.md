@@ -2,10 +2,10 @@
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/docker> · image reference <https://docs.crowdsec.net/u/getting_started/installation/#docker>
 
-Operational layer over the canonical image docs. Verified with
+Operational layer over the canonical image docs. Targets
 `crowdsecurity/crowdsec:latest` (engine v1.7.8) via compose.
 
-## Minimal working compose (verified)
+## Minimal working compose
 
 ```yaml
 services:
@@ -31,10 +31,10 @@ volumes:
 
 Bring up: `docker compose up -d`. The image installs the `COLLECTIONS` on
 startup — and re-runs the install on **every** start, not just the first (see
-§2). Verified: `sshd`, `appsec-virtual-patching`, `appsec-generic-rules` all
+§2). `sshd`, `appsec-virtual-patching`, and `appsec-generic-rules` all end up
 `enabled` after startup.
 
-## The gotchas that actually bite
+## Gotchas
 
 ### 1. Acquisition paths are *container* paths, not host paths
 
@@ -76,10 +76,9 @@ labels:
   type: nginx
 ```
 
-(verified: crowdsec subscribes to Docker events, tails the container's
-stdout/stderr, and scenarios fire on the containerized workload). The engine
-runs as root so it can read the socket; a non-root container needs the `docker`
-group via `GID`.
+crowdsec subscribes to Docker events, tails the container's stdout/stderr, and
+scenarios fire on the containerized workload. The engine runs as root so it can
+read the socket; a non-root container needs the `docker` group via `GID`.
 
 ### 2. Hub env vars install on *every* boot — but never *uninstall*
 
@@ -88,8 +87,7 @@ group via `GID`.
 `cscli <type> install` for each listed item each time (skipping items you've
 tainted or made local). So **adding** an item and recreating the container
 (`docker compose up -d`) *does* install it, even on a persisted
-`cs-config:/etc/crowdsec` volume. (Verified: added `crowdsecurity/nginx` to
-`COLLECTIONS`, recreated, it installed.)
+`cs-config:/etc/crowdsec` volume.
 
 The catch is the other direction: **removing** an item from the env var does
 **not** uninstall it. To remove, use the matching
@@ -100,16 +98,16 @@ hub directly with `docker exec crowdsec cscli collections install …` then
 
 ### 3. Port conflict with a host-installed engine
 
-If a bare-metal CrowdSec already owns `8080`/`7422` (verified — the container
-won't bind them), map to free host ports as above (`8081:8080`,
+If a bare-metal CrowdSec already owns `8080`/`7422` (the container won't bind
+them), map to free host ports as above (`8081:8080`,
 `7423:7422`). Bouncers and `cscli -u` then target the mapped host port. This is
 the normal coexistence pattern while migrating host→container.
 
 ### 4. AppSec must listen on `0.0.0.0` inside the container
 
 The AppSec acquisition must set `listen_addr: 0.0.0.0:7422` (not `127.0.0.1`)
-or the published port reaches nothing. Verified with `7423:7422` + a host
-`curl http://127.0.0.1:7423/` smoke test (`allow: 200` / `block: 403`).
+or the published port reaches nothing. Confirm with a host
+`curl http://127.0.0.1:7423/` against a `7423:7422` mapping (`allow: 200` / `block: 403`).
 
 ### 5. Other env-in-container realities
 
@@ -133,7 +131,7 @@ docker exec crowdsec cscli bouncers add my-bouncer -o raw
 ```
 
 Use that key in the bouncer's config. For declarative bootstrap, the image also
-honours `BOUNCER_KEY_<name>` env vars (verified — the named bouncer appears in
+honours `BOUNCER_KEY_<name>` env vars (the named bouncer appears in
 `cscli bouncers list` on boot); `cscli bouncers add` post-hoc is simplest for
 one-offs.
 
@@ -144,8 +142,7 @@ one-offs.
 - *In a container on the same compose network* → the crowdsec **service name +
   internal** ports: `api_url: http://crowdsec:8080`,
   `appsec_url: http://crowdsec:7422` (the unmapped container ports — don't use
-  the published `8081`/`7423` from inside the network). Verified end-to-end with
-  allow 200 / block 403 through a containerized nginx bouncer.
+  the published `8081`/`7423` from inside the network).
 
 > **lua/OpenResty bouncers in a container need a DNS `resolver`.** The nginx lua
 > bouncer resolves `crowdsec` via lua cosockets, which ignore the system
@@ -163,7 +160,7 @@ helper supports this directly:
 ~/.claude/skills/crowdsec/scripts/diagnose.sh --env docker --container crowdsec
 ```
 
-(Verified: detects `Environment: docker`, captures version + the full forensic
+(Detects `Environment: docker`; captures version plus the full forensic
 support archive from inside the container.)
 
 ## Teardown

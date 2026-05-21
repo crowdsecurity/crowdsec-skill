@@ -4,7 +4,7 @@ Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installatio
 
 This is the operational layer over the canonical install. Follow the doc for the
 exact repo line for your distro; the notes below are what the doc doesn't tell
-you and what was verified on a live 1.7.x Debian/Ubuntu box.
+you, for a 1.7.x Debian/Ubuntu box.
 
 ## 1 — Add the repository and install
 
@@ -16,7 +16,7 @@ curl -s https://install.crowdsec.net | sudo sh        # adds the repo
 sudo apt install crowdsec                              # or: sudo dnf install crowdsec
 ```
 
-What this lays down (verified):
+What this lays down:
 
 - Repo: `/etc/apt/sources.list.d/crowdsec_crowdsec.list` pointing at
   `packagecloud.io/crowdsec/crowdsec`, key in
@@ -37,7 +37,7 @@ that static file is the pre-1.7 layout. Don't add one expecting it to be read
 *instead of* `acquis.d/`; both are read, and duplicating a source double-counts
 events.
 
-## 2 — Directory map (verified layout)
+## 2 — Directory map
 
 | Path | What |
 |---|---|

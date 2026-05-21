@@ -4,8 +4,7 @@ Canonical docs: <https://docs.crowdsec.net/u/bouncers/firewall>
 
 The firewall bouncer pulls decisions from LAPI and drops banned IPs at the host
 firewall. **Installing it mutates host firewall state** — confirm with the user
-first. The notes below are verified on a live 1.7.x box with the nftables
-bouncer 0.0.34.
+first. The notes below target a 1.7.x box with the nftables bouncer 0.0.34.
 
 ## 1 — Pick the backend package
 
@@ -28,7 +27,7 @@ nft list ruleset >/dev/null 2>&1 && echo "nft available"
 sudo DEBIAN_FRONTEND=noninteractive apt install -y crowdsec-firewall-bouncer-nftables
 ```
 
-> **Gotcha (verified):** the package postinst can pop a debconf dialog (e.g. a
+> **Gotcha:** the package postinst can pop a debconf dialog (e.g. a
 > "pending kernel upgrade" notice) that *hangs* a non-interactive/SSH-piped
 > install with `Failed to open terminal … giving up!`. Always set
 > `DEBIAN_FRONTEND=noninteractive` for unattended installs.
@@ -36,7 +35,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt install -y crowdsec-firewall-bouncer-nft
 ## 2 — Registration is automatic
 
 The postinst **auto-registers the bouncer** — you do **not** need
-`cscli bouncers add`. Verified result:
+`cscli bouncers add`. Result:
 
 - A bouncer named `cs-firewall-bouncer-<timestamp>` appears in
   `sudo cscli bouncers list` (type `crowdsec-firewall-bouncer`, api-key auth).
@@ -50,7 +49,7 @@ If you *also* run `cscli bouncers add` you create a second, unused key — skip 
 Only register manually when the bouncer runs on a **different host** than LAPI
 (then set `api_url` to the remote LAPI and paste the manual key into the yaml).
 
-## 3 — What it creates in nftables (verified)
+## 3 — What it creates in nftables
 
 The bouncer builds its **own** tables, isolated from your existing ruleset:
 

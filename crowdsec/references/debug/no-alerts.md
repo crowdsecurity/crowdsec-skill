@@ -37,7 +37,7 @@ sudo cscli metrics show scenarios
 
 ## 2 — Source IP whitelisted (the most common "silent" cause)
 
-`crowdsecurity/whitelists` ships **enabled** (verified at
+`crowdsecurity/whitelists` ships **enabled** (at
 `/etc/crowdsec/parsers/s02-enrich/whitelists.yaml`) and whitelists RFC1918
 ranges: `10/8`, `172.16/12`, `192.168/16`. Events from those IPs are dropped at
 `s02-enrich` **before** any bucket — no alert, by design.
@@ -61,7 +61,7 @@ mechanisms for the full comparison.
 sudo cscli simulation status
 ```
 
-Verified output on a normal box: `global simulation: disabled`. If it's
+Normal output: `global simulation: disabled`. If it's
 **enabled**, or a specific scenario is listed, that scenario produces an alert
 but **no decision** (it's "simulated"). `cscli alerts list` still shows it with
 `simulation: true`; `cscli decisions list` stays empty. Toggle with

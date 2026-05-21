@@ -11,7 +11,7 @@ per source: Lines read / parsed / unparsed / poured to bucket / whitelisted.
 
 ## Read the table first
 
-Verified example from a live box:
+Example output:
 
 ```
 | Source                 | Lines read | Lines parsed | Lines unparsed |
@@ -37,7 +37,7 @@ access line) don't move the parsed counter.
 ## Confirm with `cscli explain` (read-only, no traffic needed)
 
 This is the fastest way to prove a parser claims a line and which `type:` it
-needs. Verified:
+needs:
 
 ```bash
 LINE='May 18 10:00:00 host sshd[123]: Failed password for root from 203.0.113.5 port 22 ssh2'
@@ -109,8 +109,8 @@ acquisition file. Fix either way:
 ## Multi-stage chains
 
 Parsing is staged (`s00` → `s01` → `s02-enrich`). A line can be parsed at s01
-then dropped/whitelisted at `s02-enrich` (e.g. `crowdsecurity/whitelists`,
-verified at `/etc/crowdsec/parsers/s02-enrich/whitelists.yaml`). If "parsed" is
+then dropped/whitelisted at `s02-enrich` (e.g. `crowdsecurity/whitelists` at
+`/etc/crowdsec/parsers/s02-enrich/whitelists.yaml`). If "parsed" is
 non-zero but "whitelisted" is also non-zero and alerts are missing, the issue is
 a whitelist, not parsing → [no-alerts.md](./no-alerts.md).
 

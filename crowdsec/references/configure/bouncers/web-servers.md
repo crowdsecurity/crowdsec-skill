@@ -10,7 +10,7 @@ Both are served by the **same bouncer API key**. Wiring the WAF is just pointing
 
 ## nginx — `crowdsec-nginx-bouncer`
 
-Verified end-to-end on Ubuntu 24.04 / nginx 1.24 against engine v1.7.8.
+Targets Ubuntu 24.04 / nginx 1.24, engine v1.7.8.
 
 ### Install — the package self-registers
 
@@ -84,7 +84,7 @@ Confirm rule attribution: `sudo cscli metrics show appsec` should show the trigg
 
 ## haproxy — `crowdsec-haproxy-spoa-bouncer`
 
-WAF-capable, via **SPOA** (Stream Processing Offload Agent): haproxy forwards each request over SPOE to a sidecar daemon that consults LAPI decisions and (optionally) AppSec. Verified end-to-end on Ubuntu 26.04 / haproxy 3.2.9 against engine v1.7.8.
+WAF-capable, via **SPOA** (Stream Processing Offload Agent): haproxy forwards each request over SPOE to a sidecar daemon that consults LAPI decisions and (optionally) AppSec. Targets Ubuntu 26.04 / haproxy 3.2.9, engine v1.7.8.
 
 ### Install — self-registers
 
@@ -163,7 +163,7 @@ sudo cscli metrics show appsec    # vpatch-CVE-2017-9841 → Triggered/Blocked
 
 ## apache — `crowdsec-apache2-bouncer`
 
-**Ban/decision enforcement only — no AppSec/WAF** (unlike nginx and haproxy SPOA). Apache module `mod_crowdsec` queries LAPI per request (with a local cache) and returns a block code for IPs under an active decision. Verified on Ubuntu 26.04 / apache 2.4.66, bouncer **v0.1**.
+**Ban/decision enforcement only — no AppSec/WAF** (unlike nginx and haproxy SPOA). Apache module `mod_crowdsec` queries LAPI per request (with a local cache) and returns a block code for IPs under an active decision. Targets Ubuntu 26.04 / apache 2.4.66, bouncer **v0.1**.
 
 ### Install — separate repo, watch the codename
 
@@ -174,11 +174,11 @@ curl -s https://packagecloud.io/install/repositories/crowdsec/crowdsec-apache/sc
 sudo apt-get install -y crowdsec-apache2-bouncer
 ```
 
-> **Codename gotcha (verified):** the repo script pins your exact distro codename. `crowdsec/crowdsec-apache` only builds for **LTS** codenames — on a non-LTS or brand-new release (e.g. Ubuntu 26.04 `resolute`) `apt install` fails with `Unable to locate package`. Fix: edit `/etc/apt/sources.list.d/*crowdsec-apache*.list` and replace the codename with the most recent supported LTS (e.g. `noble`), then `apt-get update`.
+> **Codename gotcha:** the repo script pins your exact distro codename. `crowdsec/crowdsec-apache` only builds for **LTS** codenames — on a non-LTS or brand-new release (e.g. Ubuntu 26.04 `resolute`) `apt install` fails with `Unable to locate package`. Fix: edit `/etc/apt/sources.list.d/*crowdsec-apache*.list` and replace the codename with the most recent supported LTS (e.g. `noble`), then `apt-get update`.
 
 The package auto-enables `mod_crowdsec` and pulls in `proxy`, `proxy_http`, `ssl`, `socache_shmcb`. The directives live in `/etc/crowdsec/bouncers/crowdsec-apache2-bouncer.conf`, which `/etc/apache2/mods-available/mod_crowdsec.conf` `Include`s.
 
-### Set the API key manually (v0.1 packaging gap, verified)
+### Set the API key manually (v0.1 packaging gap)
 
 The package registers a bouncer on install **but leaves the config key as a literal placeholder** `CrowdsecAPIKey $API_KEY` — the real key is never written in, and the auto-registered bouncer is therefore keyless/orphaned. Mint your own and substitute it:
 
@@ -213,14 +213,14 @@ sudo cscli decisions delete --ip 127.0.0.1
 
 ### Pitfalls
 
-- **`CrowdsecCacheTimeout` masks fresh bans (verified):** the bouncer caches each IP's verdict (default 60s). If an IP was seen *before* it was banned, it keeps getting `allow` until the cache entry expires. A ban-then-curl test within 60s looks like a failure — wait out the timeout or `systemctl restart apache2` to flush the `shmcb` cache. Lower `CrowdsecCacheTimeout` for faster enforcement at the cost of more LAPI lookups.
+- **`CrowdsecCacheTimeout` masks fresh bans:** the bouncer caches each IP's verdict (default 60s). If an IP was seen *before* it was banned, it keeps getting `allow` until the cache entry expires. A ban-then-curl test within 60s looks like a failure — wait out the timeout or `systemctl restart apache2` to flush the `shmcb` cache. Lower `CrowdsecCacheTimeout` for faster enforcement at the cost of more LAPI lookups.
 - **No WAF:** there is no AppSec path for the apache bouncer. To run the CrowdSec WAF in front of apache, terminate with nginx/haproxy SPOA (which forward to `:7422`) ahead of apache, or use a firewall bouncer for IP-level blocking.
 - **Early version:** apache bouncer is v0.1 — expect rough edges like the unsubstituted key above.
 
 ## Traefik — `crowdsec-traefik-bouncer`
 
-Middleware plugin (Yaegi) or the standalone bouncer container. AppSec is enabled with `crowdsec.appsec.enabled: true` + `crowdsec.appsec.url`; the AppSec-aware key goes in `crowdsec.crowdsecLapiKey`. *(Not yet verified end-to-end in this skill — follow the canonical Traefik bouncer page.)*
+Middleware plugin (Yaegi) or a standalone bouncer container. Per the canonical page, AppSec is wired via `crowdsec.appsec.enabled` + `crowdsec.appsec.url`, with the AppSec-aware key in `crowdsec.crowdsecLapiKey`. Follow the canonical [Traefik bouncer page](https://docs.crowdsec.net/u/bouncers/intro).
 
 ## Caddy — `caddy-crowdsec-bouncer`
 
-Caddy module; set the equivalent `appsec_url` directive on the bouncer block, auth via the bouncer's API key. *(Not yet verified end-to-end in this skill.)*
+Caddy module; per the canonical page, set the `appsec_url` directive on the bouncer block, auth via the bouncer's API key. Follow the canonical [Caddy bouncer page](https://docs.crowdsec.net/u/bouncers/intro).

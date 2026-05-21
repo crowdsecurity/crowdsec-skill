@@ -19,7 +19,7 @@ client ──► web server / ingress
      allow / 403 / captcha
 ```
 
-The AppSec endpoint listens on whatever address the AppSec acquisition file sets (`listen_addr`). Default is loopback; production deployments often expose it on a private interface so several bouncers can reach a single AppSec.
+The AppSec endpoint listens on whatever address the AppSec acquisition file sets (`listen_addr`). Default is loopback; production deployments often expose it on a private interface so several bouncers can reach a single AppSec. `listen_addr` is interpreted per environment: bare-metal binds the host address directly; Docker needs `0.0.0.0` so the published port is reachable; Kubernetes reaches it via the AppSec Service DNS. See [deploy.md](./deploy.md).
 
 ## Terminology
 
@@ -34,7 +34,7 @@ The AppSec endpoint listens on whatever address the AppSec acquisition file sets
 
 ## Protocol — what the bouncer sends
 
-Bouncers forward request metadata over HTTP to the AppSec endpoint. The relevant headers (verified against `crowdsec` 1.7.x):
+Bouncers forward request metadata over HTTP to the AppSec endpoint. The relevant headers:
 
 | Header | Meaning |
 |---|---|

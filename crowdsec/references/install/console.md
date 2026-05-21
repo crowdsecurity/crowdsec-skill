@@ -5,8 +5,7 @@ Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_instal
 The Console is the SaaS view on top of CAPI: dashboards, multi-engine overview,
 managed blocklists, and **centralized allowlists pushed to every enrolled
 engine**. Enrollment is of the **engine/LAPI** — bouncers are not enrolled
-separately; they appear in the Console *through* their LAPI. Verified against a
-live enrolled 1.7.x engine.
+separately; they appear in the Console *through* their LAPI.
 
 ## 1 — Enroll the engine
 
@@ -22,7 +21,7 @@ sudo systemctl reload crowdsec        # required for it to take effect
 **accept the instance in the Console webapp** — until you click Accept it stays
 pending and no data flows. This is the #1 "I enrolled but nothing shows up".
 
-Useful flags (verified from `cscli console enroll --help`):
+Useful flags (from `cscli console enroll --help`):
 
 | Flag | Use |
 |---|---|
@@ -38,7 +37,7 @@ If `online_api_credentials.yaml` is missing, `cscli capi register` then reload
 
 ## 2 — Console options (the part users get wrong)
 
-`cscli console status` shows five toggles. Verified default state on a fresh
+`cscli console status` shows five toggles. Default state on a fresh
 enrolled engine:
 
 | Option | Default | What it does |
@@ -57,8 +56,8 @@ sudo cscli console enable console_management
 sudo systemctl reload crowdsec
 ```
 
-These map to `share_*` keys in `/etc/crowdsec/console.yaml` (verified:
-`share_custom: true`, `share_tainted: true`, `share_manual_decisions: false`,
+These map to `share_*` keys in `/etc/crowdsec/console.yaml`
+(`share_custom: true`, `share_tainted: true`, `share_manual_decisions: false`,
 `share_context: false`) — but use `cscli console enable/disable <opt>`, not hand
 edits. `all` is a valid target (`cscli console enable all`).
 
