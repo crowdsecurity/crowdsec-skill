@@ -221,6 +221,104 @@ sudo cscli decisions delete --ip 127.0.0.1
 
 Middleware plugin (Yaegi) or a standalone bouncer container. Per the canonical page, AppSec is wired via `crowdsec.appsec.enabled` + `crowdsec.appsec.url`, with the AppSec-aware key in `crowdsec.crowdsecLapiKey`. Follow the canonical [Traefik bouncer page](https://docs.crowdsec.net/u/bouncers/intro).
 
-## Caddy — `caddy-crowdsec-bouncer`
+## Caddy — `github.com/hslatman/caddy-crowdsec-bouncer`
 
-Caddy module; per the canonical page, set the `appsec_url` directive on the bouncer block, auth via the bouncer's API key. Follow the canonical [Caddy bouncer page](https://docs.crowdsec.net/u/bouncers/intro).
+Community Caddy module. No pre-built package — must be compiled with `xcaddy`. This is the correct path when the standard nginx bouncer is not available (e.g. OPNsense/FreeBSD where nginx has no Lua module).
+
+### Build
+
+```bash
+# Install xcaddy (requires Go)
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# Build caddy with the bouncer
+xcaddy build --with github.com/hslatman/caddy-crowdsec-bouncer
+```
+
+On **FreeBSD/OPNsense** (no Go in base):
+
+```bash
+# Download Go binary for freebsd-amd64
+fetch https://go.dev/dl/go1.22.4.freebsd-amd64.tar.gz   # or latest
+tar -C /usr/local -xzf go*.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+
+sudo pkg install -y git   # xcaddy needs git for module resolution
+
+GOPATH=$HOME/go go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+GOPATH=$HOME/go $HOME/go/bin/xcaddy build \
+    --with github.com/hslatman/caddy-crowdsec-bouncer \
+    --output /tmp/caddy-cs
+
+sudo cp /tmp/caddy-cs /usr/local/bin/caddy-cs
+```
+
+### Config (JSON API — recommended for programmatic use)
+
+The bouncer exposes two handlers and one top-level app:
+
+```json
+{
+  "apps": {
+    "crowdsec": {
+      "api_url": "http://127.0.0.1:8080",
+      "api_key": "<bouncer-key>",
+      "appsec_url": "http://127.0.0.1:7422",
+      "ticker_interval": "15s",
+      "enable_streaming": true,
+      "appsec_fail_open": false
+    },
+    "http": {
+      "servers": {
+        "demo": {
+          "listen": [":8080"],
+          "routes": [
+            {
+              "handle": [
+                {"handler": "appsec"},
+                {"handler": "crowdsec"},
+                {
+                  "handler": "reverse_proxy",
+                  "upstreams": [{"dial": "127.0.0.1:8888"}]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+| Handler | Function |
+|---|---|
+| `http.handlers.appsec` | Forwards each request to AppSec (port 7422) for WAF inspection — returns 403 on inband rule match |
+| `http.handlers.crowdsec` | Checks the LAPI decision list for the client IP — returns 403 on active ban |
+
+> **Both handlers are required.** `crowdsec` alone silently skips WAF inspection — `cscli metrics show appsec` will show 0 processed. Put `appsec` first in the route.
+
+### Verify end-to-end
+
+```bash
+# AppSec block (CVE-2017-9841) → 403
+curl -sS -o /dev/null -w 'waf: %{http_code}\n' \
+    'http://<host-ip>:8080/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php'
+
+# LAPI ban block
+cscli decisions add --ip <test-ip> --duration 2m --reason test
+sleep 16   # wait for streaming ticker
+curl -sS -o /dev/null -w 'banned: %{http_code}\n' http://<host-ip>:8080/
+
+cscli metrics show appsec   # confirm processed/blocked counters
+```
+
+> **Do not test via `127.0.0.1:<bouncer-port>`** if LAPI is on `127.0.0.1:8080` and the bouncer frontend shares port `8080`. Loopback traffic routes to LAPI, not the bouncer. Use the host's internal/external IP instead.
+
+### Pitfalls
+
+- **`crowdsec-caddy-bouncer` / `crowdsecurity/caddy-cs-bouncer` do not exist** — these names return 404 on GitHub and pkg.go.dev. The correct module is `github.com/hslatman/caddy-crowdsec-bouncer`.
+- **xcaddy needs `git`** — the build fails with "git not found" on a minimal FreeBSD install. `sudo pkg install -y git` first.
+- **Build to `/tmp`, then copy** — xcaddy may not have write access to `/usr/local/bin` directly; build to `/tmp/caddy-cs`, then `sudo cp`.
+- **AppSec 0 processed** — missing `appsec` handler in the route (see the two-handler note above).
+- **LAPI port conflict** — see [../../appsec/deploy.md](../../appsec/deploy.md) § OPNsense / FreeBSD: LAPI port conflict.

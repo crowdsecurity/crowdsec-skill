@@ -113,10 +113,37 @@ The smoke test above proves the WAF works. For production you point a real bounc
 |---|---|
 | `crowdsec-nginx-bouncer` (lua module) | `APPSEC_URL=http://127.0.0.1:7422` in `/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf` (shell-style `KEY=VALUE`, empty by default = WAF off). The self-registered `API_KEY` already serves AppSec — reuse it. |
 | `crowdsec-traefik-bouncer` (middleware plugin) | `crowdsec.appsec.enabled: true`, `crowdsec.appsec.url`, and the AppSec-aware API key in `crowdsec.crowdsecLapiKey`. |
-| `crowdsec-caddy-bouncer` (Caddy module) | Equivalent `appsec_url` directive on the bouncer block. |
+| `github.com/hslatman/caddy-crowdsec-bouncer` (Caddy module) | Two handlers required in the Caddy route — **`appsec` AND `crowdsec`** (see critical note below). The `appsec_url` field goes in the top-level `crowdsec` app config block. |
 | Any other AppSec-aware bouncer | Look for an `appsec_url` / `appsec.url` field; auth is always the bouncer's existing API key. |
 
 After wiring: send a request through the real web server (not directly to 7422) and confirm the verdict propagates. The bouncer's own log should show one line per consultation; AppSec's `cscli metrics show appsec` increments.
+
+> **Critical — Caddy (`hslatman/caddy-crowdsec-bouncer`) requires TWO handlers:**
+> `http.handlers.crowdsec` only enforces IP-level bans from LAPI — it does **not** forward requests to port 7422. WAF inspection requires the separate `http.handlers.appsec` handler. Both must be in the route, `appsec` first. If only `crowdsec` is present, AppSec metrics will always show 0 processed and no requests are ever blocked by WAF rules.
+>
+> ```json
+> "routes": [
+>   {
+>     "handle": [
+>       {"handler": "appsec"},
+>       {"handler": "crowdsec"},
+>       {"handler": "reverse_proxy", "upstreams": [{"dial": "127.0.0.1:8888"}]}
+>     ]
+>   }
+> ]
+> ```
+>
+> The top-level `crowdsec` app block holds the shared config for both handlers:
+> ```json
+> "crowdsec": {
+>   "api_url": "http://127.0.0.1:8080",
+>   "api_key": "<bouncer-key>",
+>   "appsec_url": "http://127.0.0.1:7422",
+>   "ticker_interval": "15s",
+>   "enable_streaming": true,
+>   "appsec_fail_open": false
+> }
+> ```
 
 See also: [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) for installing the bouncer in the first place.
 
@@ -125,8 +152,17 @@ See also: [../configure/bouncers/web-servers.md](../configure/bouncers/web-serve
 | Env | What changes |
 |---|---|
 | **systemd / bare-metal** | The recipe above as-is. |
+| **OPNsense / FreeBSD** | Config root is `/usr/local/etc/crowdsec/`; drop acquisition in `acquis.d/appsec.yaml`. The `os-crowdsec` plugin manages the engine — reload with `service crowdsec reload`. No Lua module in the OPNsense nginx package: use the Caddy-based bouncer instead (see [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Caddy). Note the LAPI port conflict below. |
 | **Docker / compose** | AppSec runs inside the crowdsec container and must `listen_addr: 0.0.0.0:7422`. Bouncer containers reach it via the service name + internal port (`appsec_url: http://crowdsec:7422`), not the published port. The acquisition file is mounted from the host or baked into a customised image. `docker compose exec crowdsec cscli appsec-*` for management commands. **Containerized lua bouncers need a DNS `resolver` — see [../install/docker.md](../install/docker.md) § Bouncer key bootstrap.** |
 | **Kubernetes / Helm** | The official chart has `appsec.enabled: true` plus values for `appsec.listen_addr`, `appsec.config`, and a separate `appsec` Service. Bouncers target the AppSec Service DNS name. Required collections/rules can be listed in the chart's hub config. |
+
+### OPNsense / FreeBSD: LAPI port conflict
+
+CrowdSec LAPI binds to `127.0.0.1:8080` by default. Any bouncer that listens on `*:8080` (wildcard) will shadow the LAPI only from external IPs — loopback (`127.0.0.1`) always routes to LAPI. This means:
+
+- **Do not test via `127.0.0.1:8080`** — you will hit LAPI, not the bouncer.
+- Use the host's internal or external IP for end-to-end testing (e.g. `172.31.x.x:8080` on an AWS instance).
+- If both LAPI and the bouncer bind `:8080`, move the **bouncer's backend** to another port (e.g. `:8888`) and keep the bouncer frontend on `:8080` listening on `0.0.0.0` only — LAPI stays on its loopback bind and the conflict is resolved.
 
 ## Advanced shapes
 
