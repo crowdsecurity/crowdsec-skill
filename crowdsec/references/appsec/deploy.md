@@ -119,31 +119,7 @@ The smoke test above proves the WAF works. For production you point a real bounc
 After wiring: send a request through the real web server (not directly to 7422) and confirm the verdict propagates. The bouncer's own log should show one line per consultation; AppSec's `cscli metrics show appsec` increments.
 
 > **Critical — Caddy (`hslatman/caddy-crowdsec-bouncer`) requires TWO handlers:**
-> `http.handlers.crowdsec` only enforces IP-level bans from LAPI — it does **not** forward requests to port 7422. WAF inspection requires the separate `http.handlers.appsec` handler. Both must be in the route, `appsec` first. If only `crowdsec` is present, AppSec metrics will always show 0 processed and no requests are ever blocked by WAF rules.
->
-> ```json
-> "routes": [
->   {
->     "handle": [
->       {"handler": "appsec"},
->       {"handler": "crowdsec"},
->       {"handler": "reverse_proxy", "upstreams": [{"dial": "127.0.0.1:8888"}]}
->     ]
->   }
-> ]
-> ```
->
-> The top-level `crowdsec` app block holds the shared config for both handlers:
-> ```json
-> "crowdsec": {
->   "api_url": "http://127.0.0.1:8080",
->   "api_key": "<bouncer-key>",
->   "appsec_url": "http://127.0.0.1:7422",
->   "ticker_interval": "15s",
->   "enable_streaming": true,
->   "appsec_fail_open": false
-> }
-> ```
+> the `crowdsec` handler only enforces IP-level bans from LAPI — it does **not** forward requests to port 7422. WAF inspection requires the separate `appsec` handler. Both must be in the route, `appsec` first. If only `crowdsec` is present, AppSec metrics will always show 0 processed and no requests are ever blocked by WAF rules. The `appsec_url` field lives in the top-level `crowdsec` app block. Full Caddyfile and JSON recipes: [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Caddy.
 
 See also: [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) for installing the bouncer in the first place.
 

@@ -32,3 +32,6 @@ Conventions for authoring this skill. This governs how skill content is **writte
   never against the authoring machine.
 - **If you cannot verify something, mark it `untested` or leave it out.** Never present unconfirmed
   behavior as confirmed.
+- **Avoid duplicates** by checking in the existing skill documentation if the information is already present. If it is, ensure it's properly linked/routed, but don't duplicate instruction, code blocks or configurations.
+
+
