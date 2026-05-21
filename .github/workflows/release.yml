@@ -86,6 +86,22 @@ jobs:
           npm install -g @anthropic-ai/claude-code
           claude plugin validate .
 
+      - name: Build web-uploadable skill archive
+        run: |
+          # claude.ai's web skill uploader needs SKILL.md at the archive root,
+          # so zip the *contents* of crowdsec/ (not the folder itself).
+          VERSION="${{ steps.ver.outputs.version }}"
+          ( cd crowdsec && zip -r "../crowdsec-skill-v${VERSION}.zip" . )
+
+      - name: Attach archive to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          gh release upload "${{ github.event.release.tag_name }}" \
+            "crowdsec-skill-v${VERSION}.zip" --clobber
+
       - name: Commit bumped files
         run: |
           git config user.name "github-actions[bot]"

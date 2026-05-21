@@ -59,6 +59,11 @@ Update later with:
 /plugin install crowdsec@claude-community
 ```
 
+**On Claude.ai (web):** download `crowdsec-skill-vX.Y.Z.zip` from the
+[latest release](https://github.com/crowdsecurity/crowdsec-skill/releases/latest)
+and upload it in the web skill uploader. (Use that asset — its `SKILL.md` sits
+at the archive root, which the uploader requires.)
+
 ## 💬 Example prompts
 
 Once installed, Claude picks the skill up whenever your prompt involves CrowdSec:
