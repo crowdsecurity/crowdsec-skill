@@ -72,7 +72,7 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | "wrong source IP", "real client IP", "behind Cloudflare / reverse proxy / NPM", "X-Forwarded-For", "everyone shows as the proxy IP" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) — per-bouncer real-IP/trusted-proxy sections |
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
-| "upgrade", "back up", "roll back" | [references/operate/upgrades.md](./references/operate/upgrades.md) *(TODO — stub)* |
+| "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
 | "it's broken" / "not working" / general diagnosis | [references/debug/triage.md](./references/debug/triage.md) → run `~/.claude/skills/crowdsec/scripts/diagnose.sh` |
