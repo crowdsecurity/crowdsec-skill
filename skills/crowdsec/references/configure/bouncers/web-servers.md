@@ -330,6 +330,88 @@ docker exec crowdsec cscli metrics show appsec     # Processed/Blocked increment
 - **`stream` lag:** a fresh ban lands within `updateIntervalSeconds`; immediate ban-then-curl
   looks like a failure. (See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md).)
 
+### Kubernetes (Helm) — extra gotchas
+
+Deploying the plugin on the official Traefik Helm chart requires several steps the upstream docs omit:
+
+**1. Writable plugin storage**
+
+The Traefik Helm chart mounts a read-only root filesystem by default. Traefik crashes at startup with `"unable to create directory /plugins-storage/sources: read-only file system"` unless you give it a writable volume:
+
+```yaml
+# traefik values.yaml
+experimental:
+  plugins:
+    bouncer:
+      moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      version: "v1.4.4"
+
+deployment:
+  additionalVolumes:
+    - name: plugins-storage
+      emptyDir: {}
+
+additionalVolumeMounts:
+  - name: plugins-storage
+    mountPath: /plugins-storage
+```
+
+Use the `experimental.plugins` section (not `additionalArguments`) — the chart handles the correct flag format.
+
+**2. Middleware must use the plugin key name, not the module name**
+
+The Middleware `spec.plugin.<key>` must match the key in `experimental.plugins.<key>` (here: `bouncer`), **not** the module name `crowdsec-bouncer-traefik-plugin`. Error if wrong: `"plugin: unknown plugin type: crowdsec-bouncer-traefik-plugin"`.
+
+```yaml
+# Correct Kubernetes Middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: crowdsec
+  namespace: traefik
+spec:
+  plugin:
+    bouncer:                        # <-- key from experimental.plugins.bouncer
+      enabled: true
+      crowdsecMode: stream
+      crowdsecLapiScheme: http
+      crowdsecLapiHost: crowdsec-service.crowdsec.svc.cluster.local:8080
+      crowdsecLapiKey: <bouncer-key>
+      httpTimeoutSeconds: 10
+      crowdsecAppsecEnabled: true   # WAF off by default — must set true
+      crowdsecAppsecHost: crowdsec-appsec-service.crowdsec.svc.cluster.local:7422
+      crowdsecAppsecFailureBlock: true
+      crowdsecAppsecUnreachableBlock: true
+      forwardedHeadersTrustedIPs:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+```
+
+`crowdsecAppsecHost` must be the full Kubernetes service DNS name (`<release>-appsec-service.<namespace>.svc.cluster.local:7422`), not the Docker Compose shortname `crowdsec:7422`.
+
+**3. Cross-namespace Middleware is blocked by default**
+
+If your IngressRoute lives in a different namespace than the Middleware, Traefik rejects the reference: `"allowCrossNamespace is disabled, cross-namespace are disallowed"`. Either:
+- put the Middleware in the same namespace as the IngressRoute, or
+- enable in Traefik values: `providers.kubernetesCRD.allowCrossNamespace: true` (and accept the warning logged on startup).
+
+**4. Bouncer key for Kubernetes**
+
+There is no auto-registration in the Helm chart. Mint the key manually:
+
+```bash
+kubectl exec -n crowdsec deploy/crowdsec-lapi -- cscli bouncers add traefik-bouncer
+# outputs the key — copy it into the Middleware crowdsecLapiKey
+```
+
+**5. AppSec Helm values (what actually works)**
+
+The CrowdSec AppSec hostname in the Traefik Middleware (`crowdsec-appsec-service`) comes from the chart's release name. With `helm install crowdsec crowdsec/crowdsec -n crowdsec ...`, the service is:
+- LAPI: `crowdsec-service.crowdsec.svc.cluster.local:8080`
+- AppSec: `crowdsec-appsec-service.crowdsec.svc.cluster.local:7422`
+
+After a `kubectl rollout restart deployment/traefik -n traefik`, confirm the plugin connects: `cscli bouncers list` (via `kubectl exec`) should show `traefik-bouncer` with a recent `Last API pull`.
+
 ## Caddy — `github.com/hslatman/caddy-crowdsec-bouncer`
 
 WAF-capable Caddy module ([`hslatman/caddy-crowdsec-bouncer`](https://github.com/hslatman/caddy-crowdsec-bouncer)).
