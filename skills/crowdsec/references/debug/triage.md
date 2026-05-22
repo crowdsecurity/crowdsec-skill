@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "diagnose.sh support dump + triage funnel commands"
+---
+
 # Debug — First-look triage
 
 Use this when the user reports a CrowdSec problem and you don't yet know the shape of it.

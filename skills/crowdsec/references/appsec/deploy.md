@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-21
+    version: "1.7.8"
+    env: systemd
+    notes: "nginx acquisition + AppSec deploy"
+---
+
 # AppSec — Deploy
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/appsec/intro> · quickstart <https://docs.crowdsec.net/docs/next/appsec/quickstart/general> · rules deploy <https://docs.crowdsec.net/docs/next/appsec/rules_deploy> · advanced deployments <https://docs.crowdsec.net/docs/next/appsec/advanced_deployments>

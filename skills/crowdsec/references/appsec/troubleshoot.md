@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "metrics show appsec, listener on 7422, appsec-rules/configs inspect; fixed eval-time claim"
+---
+
 # AppSec — Troubleshoot
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/appsec/troubleshooting> · FAQ <https://docs.crowdsec.net/docs/next/appsec/faq> · benchmark <https://docs.crowdsec.net/docs/next/appsec/benchmark>
@@ -159,7 +167,7 @@ Inspect the bouncer's own log for `captcha` lines; it should announce when it's 
 sudo cscli metrics show appsec
 ```
 
-Per-rule eval time shows up in the rules table. Suspects:
+The Rules Metrics table shows a per-rule **Triggered** count (how often each rule matched), not timing — use it to spot a hot rule worth moving out-of-band. `cscli` does not expose per-rule eval time; for actual latency numbers use the benchmark methodology below. Suspects:
 
 - **Expensive regex** in a rule body — move to out-of-band, or replace with a cheaper match.
 - **Large request bodies** — raise / lower `request_body_limit` in the engine config; the default is conservative.

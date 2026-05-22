@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: docker
+    notes: "compose up, COLLECTIONS install on boot, /logs/auth.log container-path acquisition, 8081:8080 coexistence, bouncers add; teardown -v"
+---
+
 # Install — Docker / docker-compose
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/docker> · image reference <https://docs.crowdsec.net/u/getting_started/installation/#docker>

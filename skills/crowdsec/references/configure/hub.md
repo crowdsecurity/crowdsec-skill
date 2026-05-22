@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "update/upgrade, list -o raw, collections install+remove, inspect tainted fields"
+---
+
 # Configure — Hub management
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_installation/console_hub> · `cscli hub` reference <https://docs.crowdsec.net/docs/next/cscli/cscli_hub>
@@ -13,9 +21,11 @@ Install a **collection** and it pulls every item it depends on. Installing
 
 ```bash
 sudo cscli collections install crowdsecurity/wordpress
-#  scenarios: crowdsecurity/http-bf-wordpress_bf, crowdsecurity/http-wordpress_user-enum,
-#             crowdsecurity/http-wordpress_wpconfig
-#  collections: crowdsecurity/wordpress
+#  enabling scenarios:crowdsecurity/http-bf-wordpress_bf
+#  enabling scenarios:crowdsecurity/http-wordpress_wpconfig
+#  enabling scenarios:crowdsecurity/http-wordpress_user-enum
+#  enabling collections:crowdsecurity/wordpress
+#
 #  Run 'sudo systemctl reload crowdsec' for the new configuration to be effective.
 ```
 

@@ -30,3 +30,9 @@ jobs:
         run: |
           npm install -g @anthropic-ai/claude-code
           claude plugin validate .
+
+      # Reports per-doc verification coverage (date / version / env) and flags
+      # stale or missing records. Gaps and staleness are informational and do
+      # not fail the build; a malformed `verified:` block does.
+      - name: Verification coverage report
+        run: python3 skills/crowdsec/scripts/check-verification.py

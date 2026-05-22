@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "diagnostic commands + ExecStartPre/-t, machines, geoip path; error strings are catalog"
+---
+
 # Debug — Common errors (string → cause catalog)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/troubleshooting/intro>

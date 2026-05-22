@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-21
+    version: "1.7.8"
+    env: systemd
+    notes: "nginx bouncer path only"
+---
+
 # Bouncers — Web servers (nginx, haproxy, apache, Traefik, Caddy)
 
 Canonical docs: <https://docs.crowdsec.net/u/bouncers/intro> (per-bouncer pages: nginx, haproxy, apache, traefik, caddy)

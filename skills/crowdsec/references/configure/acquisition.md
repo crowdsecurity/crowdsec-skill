@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "config keys, crowdsec -t (clean + FATAL bad-source), appsec listener"
+---
+
 # Configure — Acquisition (log sources)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_installation/acquisition> · datasources index <https://docs.crowdsec.net/docs/next/data_sources/intro>

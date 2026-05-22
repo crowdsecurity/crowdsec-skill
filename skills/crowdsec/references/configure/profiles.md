@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "profiles.yaml structure, no cscli profiles cmd, simulation status, decision add/list/delete"
+---
+
 # Configure — Profiles (decisions, durations, simulation)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/local_api/profiles> · post-install profiles <https://docs.crowdsec.net/docs/next/getting_started/post_installation/profiles>

@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "listener 7422, configs/rules paths, out-of-band scenario→ban path; conceptual doc"
+---
+
 # AppSec — Overview
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/appsec/intro> · request lifecycle <https://docs.crowdsec.net/docs/next/appsec/request-lifecycle> · protocol <https://docs.crowdsec.net/docs/next/appsec/protocol> · FAQ <https://docs.crowdsec.net/docs/next/appsec/faq>

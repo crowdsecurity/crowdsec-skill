@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-21
+    version: "1.7.8"
+    env: systemd
+    notes: "apt + systemd install path"
+---
+
 # Install — bare metal (apt/dnf + systemd)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/linux> · post-install <https://docs.crowdsec.net/docs/next/getting_started/post_installation/acquisition>

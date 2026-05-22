@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-20
+    version: "1.7.8"
+    env: systemd
+    notes: "allowlists add/check/list"
+---
+
 # Configure — Allowlists, whitelist parsers, and postoverflows
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/local_api/centralized_allowlists/>
