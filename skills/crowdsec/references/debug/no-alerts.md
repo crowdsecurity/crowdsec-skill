@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "metrics show scenarios, whitelist RFC1918 ranges, simulation status, explain replay"
+---
+
 # Debug — Scenarios not firing (no alerts)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/troubleshooting/intro> · `cscli metrics` <https://docs.crowdsec.net/docs/next/observability/cscli_metrics>

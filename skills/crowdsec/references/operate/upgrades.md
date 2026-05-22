@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "apt-cache policy (no-op at latest, packagecloud repo, rollback table), hub upgrade, backup paths; non-destructive"
+---
+
 # Operate — Upgrades, backup, rollback
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/configuration/crowdsec_configuration> · `cscli` reference <https://docs.crowdsec.net/docs/next/cscli/>

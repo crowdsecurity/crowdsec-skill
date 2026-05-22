@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "appsec-configs/rules list+inspect, metrics rules table; fixed eval-time claim"
+---
+
 # AppSec — Configure
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/appsec/configuration> · rule management <https://docs.crowdsec.net/docs/next/appsec/configuration_rule_management> · hooks <https://docs.crowdsec.net/docs/next/appsec/hooks> · alerts & scenarios <https://docs.crowdsec.net/docs/next/appsec/alerts_and_scenarios> · API validation <https://docs.crowdsec.net/docs/next/appsec/api_validation>
@@ -132,7 +140,7 @@ For captcha responses, configuration lives on the **bouncer** (captcha provider 
 ## Performance levers
 
 - `request_body_limit` (engine config) caps how much of the request body AppSec processes — defaults are usually fine; raise for APIs with large legitimate payloads, lower for static-only fronts.
-- Rule load order is automatic; per-rule eval time appears in `cscli metrics show appsec` once you generate traffic.
+- Rule load order is automatic; per-rule **trigger counts** appear in `cscli metrics show appsec` once you generate traffic (the Rules Metrics table) — useful for spotting hot rules, though `cscli` does not report per-rule eval time.
 - Inband evaluation adds latency on the request path. Out-of-band is asynchronous and does not.
 - Move expensive rules (large regex, body inspection) to out-of-band if latency matters more than per-request blocking.
 

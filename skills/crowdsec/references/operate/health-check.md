@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "all 3 probes fire (whitelist removed), self-block→403, capi status; fixed remediation:false drift"
+---
+
 # Operate — Health-check
 
 Canonical docs: <https://docs.crowdsec.net/u/getting_started/health_check>
@@ -37,7 +45,7 @@ curl -I https://<your-public-service-url>/crowdsec-test-NtktlJHV4TfBSK3wvlhiOBnl
 sudo cscli alerts list -s crowdsecurity/http-generic-test
 ```
 
-Expected: one row with `kind: crowdsec`, scope `Ip:<your-public-ip>`. Then a decision appears in `cscli decisions list` (the default profile bans on this alert, since `Remediation: true`).
+Expected: one row with `kind: crowdsec`, scope `Ip:<your-public-ip>`. The test scenarios are deliberately `remediation: false` (`type: trigger`), so they produce an **alert but no ban decision** — the alert itself is the proof the detection chain works, and the probe won't lock you out. End-to-end bouncer enforcement is proven separately in § 5.
 
 **Common failure paths** (in order to check):
 1. *No row, no parser hit* → the web server's logs aren't being read. `cscli metrics show acquisition` — does your access log show non-zero "Lines read"? If not, see [../configure/acquisition.md](../configure/acquisition.md).
@@ -57,7 +65,7 @@ ssh crowdsec-test-NtktlJHV4TfBSK3wvlhiOBnl@<your-public-ip>
 sudo cscli alerts list -s crowdsecurity/ssh-generic-test
 ```
 
-Expected: one row with `kind: crowdsec`, ban decision shortly after.
+Expected: one row with `kind: crowdsec`. Like the HTTP probe, `ssh-generic-test` is `remediation: false` — an alert appears, but no ban (by design).
 
 **Common failure paths:**
 1. *No row* → check `cscli metrics show acquisition` for `/var/log/auth.log` (or wherever sshd logs land). On systems using journald-only logging, the file source may be empty — switch to a journald acquisition.

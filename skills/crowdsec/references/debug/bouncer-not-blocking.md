@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "allowlists/decisions/bouncers ladder, LAPI curl 200, firewall nft sets/chains/counter"
+---
+
 # Debug — Decisions exist but bouncer not blocking
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/troubleshooting/intro> · bouncers index <https://docs.crowdsec.net/u/bouncers/intro>

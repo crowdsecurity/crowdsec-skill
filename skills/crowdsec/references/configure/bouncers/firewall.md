@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-05-22
+    version: "1.7.8"
+    env: systemd
+    notes: "nftables bouncer v0.0.34 install+register, nft sets/chains (priority filter-10), ban→cscli set→drop; added stale-key recovery note"
+---
+
 # Bouncers — Firewall (nftables / iptables / ipset)
 
 Canonical docs: <https://docs.crowdsec.net/u/bouncers/firewall>
@@ -48,6 +56,15 @@ The postinst **auto-registers the bouncer** — you do **not** need
 If you *also* run `cscli bouncers add` you create a second, unused key — skip it.
 Only register manually when the bouncer runs on a **different host** than LAPI
 (then set `api_url` to the remote LAPI and paste the manual key into the yaml).
+
+> **Gotcha — reinstall over a stale key.** If a previous
+> `/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml` survives a purge/reinstall,
+> the postinst may not rewrite the `api_key`, and the service then fails to start with
+> `API error: access forbidden` / `bouncer stream halted` in
+> `/var/log/crowdsec-firewall-bouncer.log` (and the dpkg `--configure` step errors).
+> Re-register: `cscli bouncers delete <name>`, `KEY=$(cscli bouncers add fw-local -o raw)`,
+> write it into the yaml's `api_key:`, `systemctl restart crowdsec-firewall-bouncer`.
+> See [../../debug/bouncer-not-blocking.md](../../debug/bouncer-not-blocking.md) § 3.
 
 ## 3 — What it creates in nftables
 
