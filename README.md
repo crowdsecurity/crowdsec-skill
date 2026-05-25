@@ -15,7 +15,7 @@
 
 ---
 
-This is an [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) that turns Claude Code into a
+This is an [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) that turns Claude/Codex/... into a
 hands-on CrowdSec operator. Ask it to stand up an engine, wire a bouncer, enable
 the WAF, or figure out why nothing's getting blocked — it knows the `cscli`
 commands, the config layout, the failure modes, and the safe way through each of
