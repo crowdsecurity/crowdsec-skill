@@ -52,6 +52,43 @@ If they are neither root nor a sudoer, **stop and ask them to grant it** — don
 guess. Once confirmed, run bare-metal commands as root or prefixed with `sudo`.
 Docker/k8s commands run inside the container/pod and do not need this.
 
+## Step 1.5 — Version & install-source sanity check (Linux)
+
+Do this **first** on any install task and on any "weird behavior" report (missing
+`cscli` commands/flags, hub items that won't install, behavior ≠ docs). An engine
+installed from the wrong source can be **years behind** — a Linux-distro-only trap.
+
+Compare the running engine to the latest published release:
+
+```bash
+curl -s https://version.crowdsec.net/latest    # → {"tag_name":"v1.7.8",...}; parse tag_name
+cscli version                                  # bare-metal: prefix sudo
+```
+
+Then check **where the package came from**:
+
+```bash
+# Debian/Ubuntu
+apt-cache policy crowdsec                       # read the *** installed line's origin
+ls /etc/apt/sources.list.d/ | grep -i crowdsec
+# RHEL-family
+dnf info crowdsec ; dnf repolist | grep -i crowdsec
+```
+
+The official source is the packagecloud repo (`packagecloud.io/crowdsec/crowdsec`, repo id
+`crowdsec_crowdsec`). A distro origin (`archive.ubuntu.com`, `deb.debian.org`,
+`ports.ubuntu.com`) — or **no crowdsec repo file at all** — means it was installed from the
+distro's own ancient package.
+
+**Rule:** if the source isn't the official repo **or** the version is well behind
+`tag_name`, treat it as a likely-outdated install — **stop debugging config** and migrate
+onto the official repo first: [references/operate/upgrades.md](./references/operate/upgrades.md)
+§ Detect & fix an outdated / distro-packaged install.
+
+**Docker/Kubernetes:** no repo-source trap — the version is the image tag pulled from Docker
+Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
+([references/operate/upgrades.md](./references/operate/upgrades.md) happy path).
+
 ## Step 2 — Detect the intent
 
 | Cue from user | Go to |
@@ -73,6 +110,7 @@ Docker/k8s commands run inside the container/pod and do not need this.
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
 | "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
+| "old/outdated version", "`cscli` command or flag missing", "hub item won't install", "behavior doesn't match the docs", "installed from the distro package" | [references/operate/upgrades.md](./references/operate/upgrades.md) § Detect & fix an outdated / distro-packaged install (see **Step 1.5** above) |
 | "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
 | **Debug — common** · "it's broken" / "not working" / general diagnosis | [references/debug/common/triage.md](./references/debug/common/triage.md) → run `bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh` |

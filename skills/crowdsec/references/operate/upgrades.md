@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-05-22
+  - date: 2026-05-26
     version: "1.7.8"
     env: systemd
-    notes: "apt-cache policy (no-op at latest, packagecloud repo, rollback table), hub upgrade, backup paths; non-destructive"
+    notes: "apt-cache policy (no-op at latest, packagecloud repo, rollback table), hub upgrade, backup paths; outdated/distro-source facts confirmed (official origin packagecloud.io/crowdsec/crowdsec, Ubuntu 26.04 universe trap = 1.4.6); migrate-in-place recipe not run end-to-end"
 ---
 
 # Operate — Upgrades, backup, rollback
@@ -36,6 +36,21 @@ sudo cscli lapi status             # LAPI still reachable
 
 The DB migrating forward is automatic and transparent: an engine upgraded across a minor
 version (e.g. v1.6 → v1.7) on the same data volume keeps all existing decisions and machines.
+
+## Detect & fix an outdated / distro-packaged install (Linux)
+
+If the engine is **years behind**, the fix isn't `apt upgrade` — that only moves within whatever
+repo the package came from. Detect it with the version + install-source check in `SKILL.md`
+Step 1.5. If it was installed from the wrong source, add the official repo and upgrade in place —
+`apt install` (no `--purge`) keeps `/etc/crowdsec` and the DB:
+
+```bash
+curl -s https://install.crowdsec.net | sudo sh        # adds the signed official repo
+sudo apt install crowdsec                             # or: sudo dnf install crowdsec — pulls latest
+sudo systemctl restart crowdsec
+```
+
+Repo and post-install details: [../install/bare-metal.md](../install/bare-metal.md) §1.
 
 ## Bouncers upgrade on their own cadence
 
