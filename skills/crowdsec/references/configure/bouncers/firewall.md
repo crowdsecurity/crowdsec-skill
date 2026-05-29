@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-05-22
+  - date: 2026-05-26
     version: "1.7.8"
     env: systemd
-    notes: "nftables bouncer v0.0.34 install+register, nft sets/chains (priority filter-10), ban→cscli set→drop; added stale-key recovery note"
+    notes: "re-verified nftables bouncer v0.0.34 install+register, per-origin/family sets, stale ${API_KEY}→stream-halted, flush-table does not evict set elements; added wrong-set inverse-symptom pitfall"
 ---
 
 # Bouncers — Firewall (nftables / iptables / ipset)
@@ -141,6 +141,25 @@ sudo cscli decisions delete -i 192.0.2.66
 - **"Banned but still reachable"** → almost always `update_frequency` not
   elapsed, `disable_ipv6` masking a v6 client, or the bouncer service stopped.
   Full decision tree: [../../debug/symptoms/not-blocked.md](../../debug/symptoms/not-blocked.md).
+- **"Decision in `cscli decisions list` but not in the set"** (nft, ipset, all
+  backends) → you are almost always looking in the **wrong set**. The bouncer splits
+  decisions into multiple sets by *origin* (`-cscli` manual, `-CAPI` community,
+  `-crowdsec` console push, `-lists` blocklists) **and** by *family* (IPv4 vs IPv6).
+  Don't guess the name — **list the sets first**, then look inside the right one:
+  ```bash
+  sudo nft list sets        | grep crowdsec    # nftables backend: set names per table
+  sudo ipset list -name     | grep crowdsec    # iptables/ipset backend: set names
+  # then, e.g.:
+  sudo nft list set ip crowdsec crowdsec-blacklists-cscli | grep <ip>
+  sudo ipset test crowdsec-blacklists-cscli <ip>
+  ```
+  (A `nft flush table` / external ruleset reload does **not** evict the bouncer's
+  set elements on 1.7.8/v0.0.34 — if a restart is what "makes the IP appear",
+  suspect wrong-set/family or an unhealthy bouncer next, not a flush race.)
+- **Bouncer unhealthy = nothing enforced.** A bad/placeholder `api_key` makes LAPI
+  return `access forbidden` and the service exits with `bouncer stream halted`
+  (see §2). `systemctl is-active crowdsec-firewall-bouncer` plus the **Last API
+  pull** column in `cscli bouncers list` are the fast health checks.
 
 ## Teardown
 

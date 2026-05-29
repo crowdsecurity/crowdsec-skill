@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "update/upgrade, list -o raw, collections install+remove, inspect tainted fields"
+  - date: 2026-05-26
+    version: "1.7.8"
+    env: systemd
+    notes: "reproduced dangling enable-symlink → item silently not loaded → parser failure; find -xtype l fix"
 ---
 
 # Configure — Hub management
@@ -124,6 +128,20 @@ sudo systemctl reload crowdsec
   recreate / `helm upgrade`) to take effect.
 - **`upgrade` silently skips your local/tainted items** — by design. Reconcile them
   deliberately with `--force` (after saving any edits to an override).
+- **Dangling enable-symlinks silently drop items.** If `hub_dir` is changed in
+  `config.yaml`, or a hub dir is partially restored, the enable-symlinks under
+  `/etc/crowdsec/{parsers,scenarios,postoverflows,collections,...}/` can point at a
+  target that no longer exists. CrowdSec logs `Ignoring file …: lstat …: no such file
+  or directory` (a *warning*, easy to miss) and **does not load that item** — so you
+  can have `crowdsecurity/sshd-success-logs` loaded while `sshd-logs` is dangling,
+  and `cscli explain` then shows `🔴 parser failure` with no alerts ever raised.
+  Detect and fix:
+  ```bash
+  sudo find /etc/crowdsec -xtype l            # list broken (dangling) symlinks
+  sudo find /etc/crowdsec -xtype l -delete     # remove them
+  sudo cscli collections install crowdsecurity/linux --force   # re-enable cleanly
+  sudo systemctl reload crowdsec               # warnings should be gone
+  ```
 
 ## Per-environment notes
 

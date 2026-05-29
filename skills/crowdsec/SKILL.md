@@ -99,7 +99,8 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | "ban duration", "captcha", "decisions", "simulation", "alerts but no bans" | [references/configure/profiles.md](./references/configure/profiles.md) |
 | "allowlist my office / CDN / monitoring IP", "I'm getting blocked by CAPI", "exclude IP from any ban" | [references/configure/allowlists.md](./references/configure/allowlists.md) |
 | "whitelist vs allowlist vs postoverflow", "which suppression layer should I use" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms |
-| "alert me on slack/email/webhook" | [references/configure/notifications.md](./references/configure/notifications.md) *(TODO — stub)* |
+| "test my whitelist works", "is my postoverflow / dynamic-IP whitelist actually firing" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Verification — does a whitelist actually work? |
+| "notifications", "alert me on slack/email/webhook", "notification not firing" | [references/configure/notifications.md](./references/configure/notifications.md) |
 | "block at the firewall", "iptables", "nftables", "ipset" | [references/configure/bouncers/firewall.md](./references/configure/bouncers/firewall.md) |
 | "nginx bouncer", "lua / openresty module" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § nginx |
 | "haproxy bouncer", "SPOA / SPOE" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § haproxy |
@@ -111,7 +112,8 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
 | "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "old/outdated version", "`cscli` command or flag missing", "hub item won't install", "behavior doesn't match the docs", "installed from the distro package" | [references/operate/upgrades.md](./references/operate/upgrades.md) § Detect & fix an outdated / distro-packaged install (see **Step 1.5** above) |
-| "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(TODO — stub)* |
+| "multiple agents", "remote LAPI", "mTLS", "postgres backend" | [references/operate/multi-server.md](./references/operate/multi-server.md) *(partial — machine cleanup done, rest stub)* |
+| "stale machines / log processors in `cscli machines list`", "prune dead agents", "ephemeral k8s pods piling up" | [references/operate/multi-server.md](./references/operate/multi-server.md) § Decommissioning stale machines |
 | "is it working?", "smoke test", "validate install", "verify setup", "did detection / WAF / blocking actually wire up?" | [references/operate/health-check.md](./references/operate/health-check.md) |
 | **Debug — common** · "it's broken" / "not working" / general diagnosis | [references/debug/common/triage.md](./references/debug/common/triage.md) → run `bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh` |
 | **Debug — common** · specific error string | [references/debug/common/errors.md](./references/debug/common/errors.md) |
@@ -119,6 +121,7 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | **Debug — by symptom** · "logs not parsed", "0 parsed" | [references/debug/symptoms/parsing.md](./references/debug/symptoms/parsing.md) |
 | **Debug — by symptom** · "no alerts firing" | [references/debug/symptoms/no-alerts.md](./references/debug/symptoms/no-alerts.md) |
 | **Debug — by symptom** · "decision exists but not blocked" | [references/debug/symptoms/not-blocked.md](./references/debug/symptoms/not-blocked.md) |
+| **Debug — by symptom** · "bouncer blocks everything", "locked out of all services", "every request 403 after adding the bouncer" | [references/debug/symptoms/not-blocked.md](./references/debug/symptoms/not-blocked.md) § 7 — Inverse symptom |
 | **Debug — by feature** · AppSec/WAF not blocking, false positives, captcha | [references/appsec/troubleshoot.md](./references/appsec/troubleshoot.md) |
 | "switch from fail2ban" | [references/migrate/from-fail2ban.md](./references/migrate/from-fail2ban.md) *(TODO — stub)* |
 

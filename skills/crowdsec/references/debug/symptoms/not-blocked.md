@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "allowlists/decisions/bouncers ladder, LAPI curl 200, firewall nft sets/chains/counter"
+  - date: 2026-05-26
+    version: "1.7.8"
+    env: systemd
+    notes: "added §7 inverse symptom (bouncer blocks everything); LAPI 403 access-forbidden on bad/missing key reproduced via curl"
 ---
 
 # Debug — Decisions exist but bouncer not blocking
@@ -122,3 +126,40 @@ sudo cscli decisions list -o raw | grep -c CAPI    # community decisions present
 A fresh engine takes a pull cycle to import the community blocklist; the
 firewall bouncer then needs one more `update_frequency` to materialise it into
 `crowdsec-blacklists-CAPI`.
+
+## 7 — Inverse symptom: the bouncer blocks *everything*
+
+The opposite report — "after setting up the bouncer I'm locked out of all my
+services / every request is 403, even my own IP" — usually is **not** a decision
+at all. Two causes:
+
+**Bouncer can't read decisions and fails closed.** A web-server bouncer
+(traefik/nginx/caddy) that gets a non-200 from LAPI may, depending on its
+fallback setting, deny *all* traffic rather than allow it. The trigger is almost
+always a bad/expired/placeholder `api_key` — LAPI then answers every decision
+query with **HTTP 403** and a body `{"message":"access forbidden"}`, distinct
+from the *connection-refused* "LAPI unreachable" case the fail-open setting is
+named for. Confirm which one you have:
+
+```bash
+# from the bouncer host — substitute the key from the bouncer's config
+curl -s -o /dev/null -w '%{http_code}\n' -H "X-Api-Key: <key>" http://<lapi>:8080/v1/decisions
+#   403  → bad/missing/rotated key (fix the key)        ← the "blocks everything" cause
+#   200  → key is fine; look at trust config below
+#   refused/timeout → network path (fail-open governs THIS case, not 403)
+```
+
+`cscli bouncers list` corroborates: a bouncer with an **empty or stale "Last API
+pull"** never authenticated. Fix = re-mint and paste the key:
+`KEY=$(sudo cscli bouncers add <name> -o raw)` → write into the bouncer config →
+restart. (Same root cause, engine-side, as the firewall bouncer's
+`bouncer stream halted` — see [../../configure/bouncers/firewall.md](../../configure/bouncers/firewall.md) §2.)
+If service availability must survive a dead LAPI, set the bouncer's fallback to
+fail-open (`CrowdsecFallback: allow` / `enable_hard_fails` off / `appsec_fail_open: true`,
+per bouncer) — see [../../configure/bouncers/web-servers.md](../../configure/bouncers/web-servers.md).
+
+**Trust config inverted.** Putting your proxy/CDN/Docker range in the bouncer's
+*blocking* path instead of its trusted-header list (or vice-versa) makes it judge
+every request by the wrong IP. See the `clientTrustedIPs` /
+`forwardedHeadersTrustedIPs` notes in
+[../../configure/bouncers/web-servers.md](../../configure/bouncers/web-servers.md).

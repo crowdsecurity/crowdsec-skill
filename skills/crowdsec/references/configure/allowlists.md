@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "allowlists add/check/list"
+  - date: 2026-05-26
+    version: "1.7.8"
+    env: systemd
+    notes: "parser whitelist via cscli explain --verbose (ignored by whitelist, private-IP); postoverflow via crowdsec -dsn ... -no-api replay (whitelisted-skip lines)"
 ---
 
 # Configure — Allowlists, whitelist parsers, and postoverflows
@@ -199,6 +203,70 @@ sudo cscli decisions add -i 192.0.2.99 --duration 5m --reason "retest"
 # 5. Tidy up
 sudo cscli allowlists delete test
 ```
+
+## Verification — does a whitelist actually work?
+
+Allowlists are tested at the LAPI (above). The two **whitelist** layers run at
+different phases and are tested with different tools. *Authoring* either is out of
+scope (canonical docs cover syntax); confirming a deployed one fires is operational.
+
+### Whitelist parser (`parsers/s02-enrich/`) — use `cscli explain`
+
+A whitelist parser drops the **event** during enrichment, so `cscli explain` shows
+it directly — no traffic or bucket needed. Replay a line from a whitelisted source
+(the shipped `crowdsecurity/whitelists` covers RFC1918, so any private IP works):
+
+```bash
+LINE='May 26 10:00:00 host sshd[111]: Failed password for invalid user admin from 10.0.0.5 port 2222 ssh2'
+sudo cscli explain --log "$LINE" --type syslog --verbose
+```
+
+A matching whitelist tags the parser and ends the line with `ignored by whitelist`:
+
+```
+	|	└ 🟢 crowdsecurity/whitelists (~2 [whitelisted])
+	|		└ update evt.Whitelisted : false -> true
+	|		└ update evt.WhitelistReason :  -> private ipv4/ipv6 ip/ranges
+	└-------- parser success, ignored by whitelist (private ipv4/ipv6 ip/ranges) 🟢
+```
+
+No `[whitelisted]` tag / no `ignored by whitelist` line → your parser isn't
+matching (wrong expression, file not in `s02-enrich`, or not reloaded).
+
+### Postoverflow (`postoverflows/s01-whitelist/`) — replay through the engine
+
+A postoverflow runs **after** a bucket overflows, which `cscli explain` does not
+simulate (it stops at scenario routing). The dynamic-home-IP whitelist
+(<https://docs.crowdsec.net/u/getting_started/post_installation/whitelists/>) is this
+kind. Test it by replaying enough log lines to overflow, in one-shot mode:
+
+```bash
+# build a log that would trip the scenario from the whitelisted IP
+for i in $(seq 1 20); do
+  printf 'May 26 10:00:%02d host sshd[%d]: Failed password for invalid user x from 203.0.113.77 port 22 ssh2\n' "$i" "$i"
+done | sudo tee /tmp/bf.log >/dev/null
+
+sudo crowdsec -dsn file:///tmp/bf.log -type syslog -no-api
+```
+
+> **`-no-api` is mandatory while the service is running.** Without it the one-shot
+> tries to start its own LAPI and dies: `bind: address already in use` (fatal on
+> `:8080`). With `-no-api` it reuses the running LAPI.
+
+Read the output:
+
+- **Not matching** → the overflow is reported:
+  `Ip 203.0.113.77 performed 'crowdsecurity/ssh-bf' (6 events over 5s)`
+- **Matching** → the overflow is suppressed and *named*:
+  ```
+  Ban for 203.0.113.77 whitelisted, reason [home IP] name=test/home-ip-wl stage=s01-whitelist
+  [Ip 203.0.113.77 performed 'crowdsecurity/ssh-bf' ...] is whitelisted, skip.
+  ```
+  The `name=` / `stage=` confirm **your** rule matched (not a shipped one like
+  `crowdsecurity/seo-bots-whitelist`). For a dynamic-DNS whitelist
+  (`... in LookupHost("me.ddns.net")`) the same replay applies — resolution happens
+  at evaluation time, so this also catches a stale/typo'd hostname (no `whitelisted`
+  line = the name didn't resolve to the source IP).
 
 ## When allowlists silently fail to apply
 
