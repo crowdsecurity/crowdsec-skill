@@ -37,6 +37,12 @@ kubectl get pods -A 2>/dev/null | grep -i crowdsec
 
 If nothing matches and the user reports CrowdSec is installed, ask where: a vendor appliance, a custom image, a binary in `/opt/`, or a remote host. Otherwise pivot to install: see [references/install/](./references/install/).
 
+**pfSense detection:**
+```sh
+uname -i   # → pfSense  (pfSense CE or Plus)
+```
+If confirmed pfSense, go directly to [references/install/pfsense.md](./references/install/pfsense.md) — paths, service names, and activation flow are entirely different from Linux/systemd.
+
 ## Privileges — bare-metal / systemd prerequisite
 
 On bare-metal/systemd, `cscli` and `crowdsec` need **root** (they read
@@ -94,6 +100,7 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | Cue from user | Go to |
 |---|---|
 | "install", "set up", "fresh box", "how do I start" | [references/install/](./references/install/) (pick file by env) |
+| "pfsense", "pfSense", "netgate" | [references/install/pfsense.md](./references/install/pfsense.md) |
 | "configure logs / acquisition", "read journald / syslog / docker logs" | [references/configure/acquisition.md](./references/configure/acquisition.md) |
 | "install a collection / parser / scenario", "hub", "tainted" | [references/configure/hub.md](./references/configure/hub.md) |
 | "ban duration", "captcha", "decisions", "simulation", "alerts but no bans" | [references/configure/profiles.md](./references/configure/profiles.md) |
