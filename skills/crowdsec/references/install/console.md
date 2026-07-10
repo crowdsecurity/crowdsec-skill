@@ -91,7 +91,7 @@ local-vs-Console allowlist distinction.
 | Env | Enroll via |
 |---|---|
 | systemd / bare-metal | `sudo cscli console enroll …` then `systemctl reload crowdsec` |
-| Docker | `ENROLL_KEY` (and `ENROLL_INSTANCE_NAME`/`ENROLL_TAGS`) env vars on the crowdsec container, **or** `docker exec crowdsec cscli console enroll …` then restart the container |
+| Docker | `ENROLL_KEY` (and `ENROLL_INSTANCE_NAME`/`ENROLL_TAGS`) env vars on the crowdsec container, **or** `docker exec crowdsec cscli console enroll …` then restart the container. Enrollment writes `console.yaml` + `online_api_credentials.yaml` under `/etc/crowdsec` — persist that path or a recreate un-enrolls you (see pitfall). |
 | Kubernetes | `config.console.enroll_key` (and name/tags) in the Helm chart values; the LAPI pod enrolls on start |
 
 ## Pitfalls
@@ -101,6 +101,12 @@ local-vs-Console allowlist distinction.
 - **Token reuse across engines** without `--name` → every engine collides under
   the machine-ID default and they're indistinguishable in the Console. Set
   `--name` per engine.
+- **Docker recreate un-enrolls you**: interactive `cscli console enroll` writes
+  its state under `/etc/crowdsec`. If that path isn't a persisted volume, a
+  `docker compose down && up` (or image upgrade) recreates the container and drops
+  the enrollment — you re-enroll and re-Accept. Persist `/etc/crowdsec` (see
+  [../install/docker.md](../install/docker.md)), or use the `ENROLL_KEY` env
+  instead: it re-runs on every boot and is recreate-safe.
 - **Egress**: the engine must reach `api.crowdsec.net` (HTTPS). Behind a proxy,
   set the proxy env for the crowdsec service; behind egress filtering, allow
   that host. `cscli capi status` failing right after enroll is almost always
