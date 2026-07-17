@@ -4,6 +4,10 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "appsec-configs/rules list+inspect, metrics rules table; fixed eval-time claim"
+  - date: 2026-07-17
+    version: "1.7.5-174-g66ab61fc-dirty"
+    env: docker
+    notes: "bot-detection/challenge config: challenge: block, SendChallenge/MatchKnownBot/ExemptFromChallenge/RejectSubmission hooks, on_challenge_submit phase, metrics"
 ---
 
 # AppSec — Configure
@@ -97,16 +101,130 @@ Disabling a rule the appsec-config still references will trip `unable to load in
 
 ## Hooks
 
-Hooks let you mutate the request, add context, or short-circuit evaluation. They fire at three phases:
+Hooks let you mutate the request, add context, or short-circuit evaluation. They fire at up to six phases (the last two only exist for bot-detection/challenge mode, see below):
 
 | Phase | When | Typical use |
 |---|---|---|
 | `on_load` | Once at startup. | Hydrate variables, compile regex caches. |
 | `pre_eval` | Before any rule runs against a request. | Inject custom variables from request headers, classify the request, decide if rules should evaluate at all. |
 | `on_match` | After a rule has matched but before the verdict is returned. | Change the action (`ban` → `captcha`), set a custom HTTP response, append context for scenarios. |
-| `post_eval` | After all rules have evaluated. | Log enrichment; rarely modifies the verdict. |
+| `post_eval` | After all rules have evaluated. | Log enrichment; rarely modifies the verdict. Also where the bot-detection challenge gate lives — § Bot-detection / challenge mode below. |
+| `on_challenge` | In-band only. A request carries an already-valid challenge cookie. | Branch on the decoded `fingerprint` object (e.g. force a re-challenge on a mismatch). |
+| `on_challenge_submit` | In-band only. A client POSTs to `/crowdsec-internal/challenge/submit`, after crypto validation. | Reject a cryptographically-valid but suspicious submission (`fingerprint.IsBot()` → `RejectSubmission(...)`). |
 
 Hooks are written in the `expr` language. They are deterministic and must not perform I/O. Errors in hooks bubble to the agent log and (for `pre_eval` / `on_match`) can drop or duplicate a request — test thoroughly with `cscli explain` (where supported) before enabling in production.
+
+## Bot-detection / challenge mode (early feature)
+
+**Not in a numbered release yet.** Engine support merged to crowdsec `master` after v1.7.8 (no
+published canonical docs page as of this writing); the hub collection
+(`crowdsecurity/appsec-bot-challenge`) is still an upstream `[do-not-merge]` PR
+(`crowdsecurity/hub#1826`, branch `test-waf-challenge-mode-scenarios`) — install it via the
+`hub_branch` override, see [../configure/hub.md](../configure/hub.md) § Pinning to a hub
+branch. Only bouncers that understand the structured JSON challenge envelope can render it —
+see [deploy.md](./deploy.md) § Bot-detection / challenge mode for the bouncer-side
+requirement.
+
+This serves visitors a lightweight proof-of-work + browser-fingerprint challenge instead of a
+hard block, then lets solved, non-bot clients through. Configuration lives in a top-level
+`challenge:` block on an appsec-config — combines field-by-field with other loaded configs,
+same as any other appsec-config field:
+
+```yaml
+challenge:
+  master_secret: "<64-char hex, or ≥32-byte passphrase>"   # unset = random, single-instance only
+  key_rotation_interval: 5m    # min 30s; must match across instances in HA
+  max_live_epochs: 3           # past epochs still accepted (slow clients)
+  cookie_ttl: 12h              # independent of key rotation
+```
+
+Leaving `master_secret` unset is fine on a single instance (a random secret is generated at
+startup, invalidating outstanding cookies on every restart). Running more than one AppSec
+instance requires setting `master_secret` and `key_rotation_interval` identically on all of
+them, or cookies minted by one are rejected by the others.
+
+### The core gate
+
+The shipped `crowdsecurity/appsec-bot-challenge-simple` config challenges every in-band
+request unconditionally — known-bot recognition is handled upstream by separate exemption
+configs (below), not by this gate:
+
+```yaml
+inband:
+  post_eval:
+    - filter: "true"
+      apply:
+        - SendChallenge()
+  on_challenge_submit:
+    - filter: "fingerprint.IsBot()"
+      apply:
+        - RejectSubmission("known bot (fast bot detection)")
+```
+
+### Known-bot exemption
+
+Nine opt-in `crowdsecurity/appsec-bot-challenge-exclude-*` configs (search engines, AI
+crawlers, social, monitoring, plus path-based ones for crawler files/feeds/webhooks/static/API
+routes) ship with the collection. Each runs a `pre_eval` hook matching a verified bot against a
+downloaded datafile, then flags the request so the core gate's `SendChallenge()` becomes a
+no-op for it — no cookie minted, re-evaluated every request:
+
+```yaml
+inband:
+  pre_eval:
+    - filter: 'MatchKnownBot(req.RemoteAddr, req.UserAgent(), req.URL.Path, "legit_bots/googlebot.json")'
+      apply:
+        - ExemptFromChallenge("googlebot")
+```
+
+`MatchKnownBot` requires network verification (exact IP, CIDR range, or forward-confirmed
+reverse DNS) in addition to the User-Agent match — a spoofed UA alone never exempts a request.
+To recognize your own bot, write a datafile (newline-delimited JSON, one entry per line) and
+declare it under the config's `data:` block:
+
+```yaml
+data:
+  - dest_file: my-bots.json
+    type: bots
+    source_url: https://example.test/my-bots.json   # cwhub-downloaded; for a local-only file,
+                                                       # bind-mount it into place instead and any
+                                                       # source_url value is fine — it's never
+                                                       # fetched if the file already exists
+```
+
+```json
+{"name":"my-internal-probe","user_agent":"MyProbe/1\.0","ranges":["10.0.0.0/8"]}
+```
+
+At least one of `ips`/`ranges`/`rdns` is required per entry — a User-Agent-only definition is
+rejected at load time (trivially spoofable).
+
+### Challenge-related hook functions
+
+| Function | Phase(s) | Effect |
+|---|---|---|
+| `SendChallenge()` | `post_eval`, `on_challenge` only | Serves the challenge for this request. No-op if the request already carries a valid cookie or was flagged exempt. |
+| `MatchKnownBot(ip, ua, path, datafile...)` | any | `true` if the request matches a bot datafile entry (UA + path preconditions, then IP/range/rDNS verification). |
+| `ExemptFromChallenge(reason)` | any | Flags the request exempt for `SendChallenge()`. Re-evaluated every request — mints no cookie. |
+| `GrantChallengeCookie(reason, ttl?)` | any | Mints a real challenge cookie without a solve — persists across requests until `ttl` (default `cookie_ttl`) expires. |
+| `RejectSubmission(reason)` | `on_challenge_submit` only | Rejects an otherwise crypto-valid submission. |
+| `DumpFingerprint(label)` | any (fingerprint must be populated) | Writes the decoded fingerprint as JSONL to `<datadir>/fingerprint_dumps/crowdsec_fp_dump_<label>.jsonl` — for offline tuning of your own bot rules. |
+
+`fingerprint.IsBot()` (bool) and `fingerprint.BotSignalCount()` (int) are the two most useful
+fields on the `fingerprint` object exposed to `on_challenge`/`on_challenge_submit`.
+
+### Verify
+
+```bash
+cscli metrics show appsec   # "Bot Detection Metrics" table: Requested/Submitted/Solved/Granted/
+                             # Exempt/Protocol Failures/Submissions Rejected/Cookies Invalid,
+                             # plus a per-reason "Bot Detection — Exempted" breakdown
+```
+
+A plain request to a challenged route returns `200` with an HTML challenge page and
+`user_cookies`/`user_headers` in AppSec's JSON envelope — **not** a bare `403` — so test through
+a bouncer that understands the envelope (see deploy.md), not with raw curl against `:7422`
+expecting a block/allow status code.
 
 ## Alerts and scenarios from AppSec
 

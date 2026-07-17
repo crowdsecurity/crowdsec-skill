@@ -8,6 +8,10 @@ verified:
     version: "1.7.8"
     env: k8s
     notes: "k8s with traefik + AppSec"
+  - date: 2026-07-17
+    version: "1.7.5-174-g66ab61fc-dirty"
+    env: docker
+    notes: "bot-detection/challenge collection install via hub_branch; Traefik local-plugin wiring for the structured challenge envelope (maxlerebourg/crowdsec-bouncer-traefik-plugin#343)"
 ---
 
 # AppSec — Deploy
@@ -124,7 +128,7 @@ The smoke test above proves the WAF works. For production you point a real bounc
 | Bouncer | Where to set the AppSec endpoint |
 |---|---|
 | `crowdsec-nginx-bouncer` (lua module) | `APPSEC_URL=http://127.0.0.1:7422` in `/etc/crowdsec/bouncers/crowdsec-nginx-bouncer.conf` (shell-style `KEY=VALUE`, empty by default = WAF off). The self-registered `API_KEY` already serves AppSec — reuse it. |
-| Traefik (`maxlerebourg/crowdsec-bouncer-traefik-plugin`) | Flat plugin options: `crowdsecAppsecEnabled: true` (default false), `crowdsecAppsecHost: <host>:<port>` (no scheme — `crowdsec:7422` in Docker Compose where the container is named `crowdsec`; `<release>-appsec-service.<namespace>.svc.cluster.local:7422` in Kubernetes), and the bouncer key in `crowdsecLapiKey`. In Kubernetes the Middleware `spec.plugin.<key>` must match the key registered in Traefik's `experimental.plugins.<key>` — NOT the module name `crowdsec-bouncer-traefik-plugin`. Full recipe in [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Traefik. |
+| Traefik (`maxlerebourg/crowdsec-bouncer-traefik-plugin`) | Flat plugin options: `crowdsecAppsecEnabled: true` (default false), `crowdsecAppsecHost: <host>:<port>` (no scheme — `crowdsec:7422` in Docker Compose where the container is named `crowdsec`; `<release>-appsec-service.<namespace>.svc.cluster.local:7422` in Kubernetes), and the bouncer key in `crowdsecLapiKey`. In Kubernetes the Middleware `spec.plugin.<key>` must match the key registered in Traefik's `experimental.plugins.<key>` — NOT the module name `crowdsec-bouncer-traefik-plugin`. Full recipe in [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Traefik. For bot-detection/challenge mode specifically, see § Bot-detection / challenge mode below — the released plugin doesn't parse the structured challenge envelope yet. |
 | `github.com/hslatman/caddy-crowdsec-bouncer` (Caddy module) | Two handlers required in the Caddy route — **`appsec` AND `crowdsec`** (see critical note below). The `appsec_url` field goes in the top-level `crowdsec` app config block. |
 | Any other AppSec-aware bouncer | Look for an `appsec_url` / `appsec.url` field; auth is always the bouncer's existing API key. |
 
@@ -134,6 +138,80 @@ After wiring: send a request through the real web server (not directly to 7422) 
 > the `crowdsec` handler only enforces IP-level bans from LAPI — it does **not** forward requests to port 7422. WAF inspection requires the separate `appsec` handler. Both must be in the route, `appsec` first. If only `crowdsec` is present, AppSec metrics will always show 0 processed and no requests are ever blocked by WAF rules. The `appsec_url` field lives in the top-level `crowdsec` app block. Full Caddyfile and JSON recipes: [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) § Caddy.
 
 See also: [../configure/bouncers/web-servers.md](../configure/bouncers/web-servers.md) for installing the bouncer in the first place.
+
+## Bot-detection / challenge mode (early feature)
+
+**Not in a numbered release yet** — see [configure.md](./configure.md) § Bot-detection /
+challenge mode for the config-side details (the `challenge:` block, hooks, known-bot
+exemption). This section covers installing the collection and the bouncer-side requirement.
+
+### Install
+
+The collection isn't on the released hub index. Point `cscli.hub_branch` at the upstream
+`[do-not-merge]` PR branch first (verified against `crowdsecurity/hub#1826`,
+`test-waf-challenge-mode-scenarios` — see [../configure/hub.md](../configure/hub.md) §
+Pinning to a hub branch for the full command sequence and the revert gotchas), then:
+
+```bash
+sudo cscli hub update
+sudo cscli collections install crowdsecurity/appsec-bot-challenge
+```
+
+This pulls `appsec-bot-challenge-simple` (the config that serves the challenge), all nine
+`appsec-bot-challenge-exclude-*` configs (each downloads its own verified-bot datafiles from
+`hub-data.crowdsec.net` at install time), four scenarios (rate-limiting on
+requested-but-never-solved / too-many-submissions / no-submission patterns, plus a
+bot-detected alert), a parser, and a context. Add the configs you want to your acquisition's
+`appsec_configs:` list alongside your base config (they combine field-by-field — see
+[configure.md](./configure.md) § Acquisition file) and reload.
+
+### Bouncer requirement — structured challenge envelope
+
+Unlike a normal AppSec block, a challenge response is a `403` carrying a JSON envelope
+(`action: "challenge"`, `http_status`, `user_body_content`, `user_headers`, `user_cookies`) that
+the bouncer must parse and relay to the browser verbatim — not just treat as a block. A
+compatible bouncer needs both of:
+
+- **Route the challenge protocol paths through the same AppSec-enabled middleware/route as the
+  protected application** — `/crowdsec-internal/challenge/*` (the challenge page, the
+  proof-of-work JS worker, and the submit endpoint). The bouncer answers these directly from
+  AppSec's envelope; they must never reach the real backend.
+- **Parse the envelope on any `403`** and write `http_status` (default `200` if absent),
+  `user_headers`, and each `user_cookies` entry as its own `Set-Cookie` header (never
+  comma-joined) to the client. An empty-body or non-JSON `403` still falls back to a normal
+  block — this is how older/incompatible bouncers degrade safely.
+
+As of this writing, this parsing isn't in the *released* `maxlerebourg/crowdsec-bouncer-traefik-plugin` —
+only in open PR `#343`. To test it, build the plugin as a Traefik **local plugin** from that
+branch rather than installing the registered catalog entry:
+
+```yaml
+# docker-compose.yml (Traefik service)
+command:
+  - "--experimental.localplugins.bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+volumes:
+  - ./plugin:/plugins-local/src/github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin:ro   # git clone of the PR branch
+```
+
+```yaml
+# protected service labels
+- "traefik.http.routers.router-challenge.rule=PathPrefix(`/crowdsec-internal/challenge`)"
+- "traefik.http.routers.router-challenge.middlewares=crowdsec@docker"
+- "traefik.http.routers.router-challenge.service=<same service as the protected route>"
+```
+
+### Verify
+
+```bash
+curl -sS -D - http://<host>/<protected-path>
+# expect: 200, Content-Type: text/html, X-Remediation: challenge (or whatever
+# remediationheaderscustomname is set to), body is the challenge HTML — NOT a bare 403
+```
+
+A real browser will additionally solve the proof-of-work and reach the backend on the next
+request; curl alone only proves the envelope is being relayed, not a full solve — check
+`cscli metrics show appsec` (see [configure.md](./configure.md) § Verify) for `Ch. Requested`
+incrementing, and `Ch. Accepted` once something has actually solved it.
 
 ## Per-environment notes
 
