@@ -103,6 +103,7 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | "pfsense", "pfSense", "netgate" | [references/install/pfsense.md](./references/install/pfsense.md) |
 | "configure logs / acquisition", "read journald / syslog / docker logs" | [references/configure/acquisition.md](./references/configure/acquisition.md) |
 | "install a collection / parser / scenario", "hub", "tainted" | [references/configure/hub.md](./references/configure/hub.md) |
+| "hub_branch", "pin to a hub branch", "install from a hub PR before it merges", "test unreleased hub content" | [references/configure/hub.md](./references/configure/hub.md) § Pinning to a hub branch |
 | "ban duration", "captcha", "decisions", "simulation", "alerts but no bans" | [references/configure/profiles.md](./references/configure/profiles.md) |
 | "allowlist my office / CDN / monitoring IP", "I'm getting blocked by CAPI", "exclude IP from any ban" | [references/configure/allowlists.md](./references/configure/allowlists.md) |
 | "whitelist vs allowlist vs postoverflow", "which suppression layer should I use" | [references/configure/allowlists.md](./references/configure/allowlists.md) § Suppression mechanisms |
@@ -154,6 +155,7 @@ These work in every environment. On bare-metal/systemd, prefix with `sudo` (unle
 | Delete one ban | `cscli decisions delete -i <ip>` |
 | Hub state (installed + tainted/missing flags) | `cscli hub list` |
 | Refresh hub index, then upgrade items | `cscli hub update && cscli hub upgrade` |
+| Show which hub branch cscli is tracking | `cscli hub branch` |
 | Allowlists — list / check one IP / add | `cscli allowlists list`, `cscli allowlists check <ip>`, `cscli allowlists add <name> <ip>` |
 | List bouncers and their last pull time | `cscli bouncers list` |
 | List agents registered to this LAPI | `cscli machines list` |
