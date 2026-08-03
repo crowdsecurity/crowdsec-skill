@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-05-22
+  - date: 2026-07-10
     version: "1.7.8"
     env: docker
-    notes: "compose up, COLLECTIONS install on boot, /logs/auth.log container-path acquisition, 8081:8080 coexistence, bouncers add; teardown -v"
+    notes: "compose up on empty cs-config volume; acquis.d must be read-write (a :ro submount aborts boot with rsync exit 23); /etc/crowdsec persists creds+enrollment across down&&up; COLLECTIONS install on boot; /logs/auth.log container-path acquisition; 8081:8080 coexistence; bouncers add; teardown -v"
 ---
 
 # Install — Docker / docker-compose
@@ -27,7 +27,7 @@ services:
       - cs-config:/etc/crowdsec
       - cs-data:/var/lib/crowdsec/data
       - /var/log/auth.log:/logs/auth.log:ro          # host log, read-only
-      - ./acquis.d:/etc/crowdsec/acquis.d:ro          # your acquisition
+      - ./acquis.d:/etc/crowdsec/acquis.d            # your acquisition — must be read-write (§6)
     ports:
       - "8081:8080"      # LAPI (see port-conflict note)
       - "7423:7422"      # AppSec (only if you run the WAF)
@@ -41,6 +41,16 @@ Bring up: `docker compose up -d`. The image installs the `COLLECTIONS` on
 startup — and re-runs the install on **every** start, not just the first (see
 §2). `sshd`, `appsec-virtual-patching`, and `appsec-generic-rules` all end up
 `enabled` after startup.
+
+**Persist both volumes — they hold different state.** `cs-config:/etc/crowdsec`
+holds `console.yaml` and the `local_api_credentials.yaml` /
+`online_api_credentials.yaml` files; `cs-data:/var/lib/crowdsec/data` holds the
+DB (decisions, alerts). `docker restart` keeps everything, but
+`docker compose down && up` — or an image upgrade — *recreates* the container and
+loses whatever isn't on a volume. Without `cs-config`, a container recreated after
+`cscli console enroll` comes back **un-enrolled** (you re-enroll and re-accept);
+see [console.md](console.md). The canonical Docker doc lists
+`crowdsec-config:/etc/crowdsec` among the paths that must be persisted.
 
 ## Gotchas
 
@@ -130,6 +140,23 @@ or the published port reaches nothing. Confirm with a host
   issue with custom runtimes.
 - **IPv6**: the AppSec/firewall behaviour mirrors bare-metal; container
   networking is v4 by default unless you enable v6 on the daemon/network.
+
+### 6. `acquis.d` must be read-write when `/etc/crowdsec` is a persisted volume
+
+Mount `./acquis.d` **read-write** (as the compose above does), not `:ro`. On a
+fresh `cs-config` volume the entrypoint rsyncs its staging config into
+`/etc/crowdsec` and `chown`s everything under it, including the `acquis.d`
+submount. A `:ro` bind there makes that `chown` fail and the container dies on
+first boot:
+
+```
+rsync: [generator] chown "/etc/crowdsec/acquis.d" failed: Read-only file system (30)
+rsync error: some files/attrs were not transferred (see previous errors) (code 23)
+```
+
+The container exits **23** and never starts. This only affects the `acquis.d`
+submount *inside* the persisted `/etc/crowdsec` volume — host-log mounts elsewhere
+(e.g. `/logs/auth.log:ro`) are untouched.
 
 ## Bouncer key bootstrap
 

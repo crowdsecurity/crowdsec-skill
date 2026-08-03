@@ -8,6 +8,10 @@ verified:
     version: "1.7.8"
     env: k8s
     notes: "k8s with traefik + AppSec"
+  - date: 2026-07-10
+    version: "1.7.8"
+    env: docker
+    notes: "Traefik plugin: crowdsecLapiKeyFile (compose secret) auth + bouncer registration; crowdsecAppsecFailureBlock/UnreachableBlock fail closed (403 while AppSec down); AppSec block .env/CVE -> 403, benign 200"
 ---
 
 # Bouncers — Web servers (nginx, haproxy, apache, Traefik, Caddy)
@@ -292,10 +296,14 @@ http:
 | Key | Set to | Notes |
 |---|---|---|
 | `crowdsecMode` | `stream` | `live` = query LAPI per request; `stream` = poll list (lower latency, prod default); `appsec` = WAF only; `none`/`alone`. |
-| `crowdsecLapiKey` | (bouncer key) | Serves both decisions and AppSec. |
+| `crowdsecLapiKey` | (bouncer key) | Serves both decisions and AppSec. Lands in the dynamic config file — for anything you commit, use `crowdsecLapiKeyFile` instead (see secrets pitfall). |
+| `crowdsecLapiKeyFile` | (path) | Read the key from a file (e.g. a mounted Docker/K8s secret) instead of inline. Mutually exclusive with `crowdsecLapiKey`. |
 | `crowdsecLapiHost` | `crowdsec:8080` | Host:port, no scheme (scheme is `crowdsecLapiScheme`). |
 | `crowdsecAppsecEnabled` | `false` | **WAF is off by default.** `true` to forward requests to AppSec. |
 | `crowdsecAppsecHost` | `crowdsec:7422` | AppSec must `listen_addr: 0.0.0.0:7422` so the Traefik container can reach it. |
+| `crowdsecAppsecFailureBlock` | `true` | Fail-**closed** if AppSec *errors* on a request (block vs allow). Set `false` to fail open. |
+| `crowdsecAppsecUnreachableBlock` | `true` | Fail-**closed** if AppSec is *unreachable* (block vs allow). Set `false` to fail open. |
+| `crowdsecAppsecBodyLimit` | `10485760` | Max request-body bytes forwarded to AppSec (10 MB default). A DoS-hardening cap. |
 | `forwardedHeadersTrustedIPs` | `[]` | Plugin-side trust for `X-Forwarded-For`. **Not sufficient alone — see real-IP pitfall.** |
 | `clientTrustedIPs` | `[]` | IPs that **bypass the bouncer entirely**. Do **not** put your proxy/Docker range here or every request is allowed. |
 
@@ -341,6 +349,32 @@ docker exec crowdsec cscli metrics show appsec     # Processed/Blocked increment
   `0.0.0.0:7422` (not loopback) for a containerized Traefik to reach it.
 - **`stream` lag:** a fresh ban lands within `updateIntervalSeconds`; immediate ban-then-curl
   looks like a failure. (See [../../debug/symptoms/not-blocked.md](../../debug/symptoms/not-blocked.md).)
+- **Key committed in plaintext:** the literal `crowdsecLapiKey` lives in the dynamic config file,
+  which you usually don't want in version control. For anything you commit or ship, mount the key
+  as a file and point `crowdsecLapiKeyFile` at it. With Docker Compose, a `secret` mounts at
+  `/run/secrets/<name>`:
+
+  ```yaml
+  # docker-compose.yml (traefik service)
+  services:
+    traefik:
+      secrets: [lapi_key]
+  secrets:
+    lapi_key:
+      file: ./secrets/lapi_key          # the raw bouncer key, no trailing newline
+  ```
+
+  Then set `crowdsecLapiKeyFile: /run/secrets/lapi_key` in the middleware (drop `crowdsecLapiKey`).
+  The official Traefik bouncer guide treats the inline key as the quick-validation path only.
+- **Fail-open by default on AppSec trouble:** if AppSec errors or is unreachable, whether the
+  request is blocked depends on `crowdsecAppsecFailureBlock` / `crowdsecAppsecUnreachableBlock`.
+  Set both `true` to fail **closed** (a request 403s while AppSec is down) rather than pass
+  traffic through un-inspected.
+- **Non-XFF real IP (situational):** this walkthrough assumes the client IP arrives in
+  `X-Forwarded-For`. If your upstream sends a different header (e.g. `X-Real-Ip`), set the plugin's
+  `forwardedHeadersCustomName`; if it uses the PROXY protocol (AWS NLB, some HAProxy/keepalived
+  setups), trust it on the Traefik entrypoint with `proxyProtocol.trustedIPs` (the L4 analogue of
+  `forwardedHeaders.trustedIPs`). Skip both if your upstream sends plain XFF.
 
 ### Kubernetes (Helm) — extra gotchas
 
