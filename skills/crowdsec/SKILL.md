@@ -19,7 +19,8 @@ thing. This skill uses both interchangeably.
 | Deploy the WAF (AppSec component) | this skill |
 | Debug "logs not parsing" / "no alerts" / "bouncer not blocking" | this skill |
 | Migrate from fail2ban | this skill |
-| **Write** a parser, scenario, or WAF (AppSec) rule | out of scope — this skill is operational only |
+| **Write** a parser, scenario, or WAF (AppSec) rule | the `crowdsec-local-mcp` mcp |
+| Drive the **cloud Service API** (manage blocklists / allowlists / firewall integrations / metrics / decisions programmatically) | the `crowdsec-service-api` skill |
 
 
 ## Step 1 — Detect the environment
