@@ -15,14 +15,21 @@
 
 ---
 
-This is an [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) that turns Claude/Codex/... into a
-hands-on CrowdSec operator. Ask it to stand up an engine, wire a bouncer, enable
-the WAF, or figure out why nothing's getting blocked — it knows the `cscli`
-commands, the config layout, the failure modes, and the safe way through each of
-them across **bare-metal/systemd, Docker, OpnSense and Kubernetes/Helm**.
+This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)**:
+
+- **`crowdsec`** — a hands-on CrowdSec operator. Stand up an engine, wire a
+  bouncer, enable the WAF, or figure out why nothing's getting blocked. It knows
+  the `cscli` commands, the config layout, the failure modes, and the safe way
+  through each across **bare-metal/systemd, Docker, OpnSense and Kubernetes/Helm**.
+- **`crowdsec-service-api`** — drives the premium **Console Service API** (cloud)
+  on your behalf with your API key: create and populate blocklists/allowlists,
+  wire firewall/appliance integrations, pull remediation ROI metrics, and manage
+  org-level decisions — every state change gated behind an explicit confirmation.
 
 
 ## What it covers
+
+**`crowdsec` (operational):**
 
 | Area | Covered |
 |---|---|
@@ -33,6 +40,16 @@ them across **bare-metal/systemd, Docker, OpnSense and Kubernetes/Helm**.
 | **Configure** | acquisition · profiles & ban durations · notifications · allowlists |
 | **Operate** | health checks & smoke tests · upgrades & rollback · multi-server / remote LAPI / mTLS |
 | **Debug** | logs not parsing · no alerts firing · bouncer not blocking · specific errors |
+
+**`crowdsec-service-api` (premium cloud API):**
+
+| Area | Covered |
+|---|---|
+| **Blocklists** | create · add/remove/bulk IPs (with expiry) · download · share across orgs · subscribe engines/bouncers |
+| **Allowlists** | create · items with expiry · subscribe by engine/tag/org |
+| **Integrations** | firewall/appliance feeds (Palo Alto, Fortinet, Cisco, F5, Sophos, pfSense/OPNsense…) · paginated Basic-auth content pull |
+| **Metrics** | remediation ROI (traffic dropped, bytes/egress saved, attacks prevented) |
+| **Decisions** | org-level decisions + aggregated (read/manage) |
 
 ## 🚀 Install
 
@@ -80,6 +97,9 @@ Once installed, Claude picks the skill up whenever your prompt involves CrowdSec
 - _"CrowdSec doesn't detect attacks on my nginx server, why?"_
 - _"There's a decision for this IP but it's not being blocked."_
 - _"Migrate my fail2ban jails to CrowdSec."_
+- _"Create a Console blocklist and push these IPs from my SIEM to it."_ (Service API)
+- _"Wire a Palo Alto external dynamic list to my CrowdSec blocklist."_ (Service API)
+- _"Show me the remediation ROI metrics for last month."_ (Service API)
 
 ## What it does **not** do
 

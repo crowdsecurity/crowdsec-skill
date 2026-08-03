@@ -33,6 +33,13 @@ If you are uncertain about any fact, statistic, date, or piece of technical info
 
 ## Content structure
 
+The plugin ships **two skills** under `skills/`: `crowdsec` (operational — local
+engine/cscli/bouncers/WAF) and `crowdsec-service-api` (the premium Console cloud REST API). Each has
+its own router `SKILL.md` and `references/`. The layout below describes the `crowdsec` skill; the
+`crowdsec-service-api` layout follows in its own subsection.
+
+### `crowdsec` skill layout
+
 `SKILL.md` is the router — a symptom/intent-indexed table that points into `references/`.
 All depth lives in `references/<area>/`, organized by the axis that fits the area:
 
@@ -60,6 +67,31 @@ All depth lives in `references/<area>/`, organized by the axis that fits the are
 **Keep this current.** When you add, move, or remove a `references/` directory — or change an
 area's organizing axis — update the table above in the *same* change. This section is the
 authoritative map of the layout; let it drift and it stops being trustworthy.
+
+### `crowdsec-service-api` skill layout
+
+`SKILL.md` is the router **plus** the "acting on the user's behalf" operating contract (key
+resolution, `/info` validation, read-vs-mutate confirm gate). `references/` is organized by **API
+resource group** — the axis that fits a REST API — one file each:
+
+| File | Covers |
+|---|---|
+| `authentication.md` | Key creation, `x-api-key`, key resolution (env → `~/.config/crowdsec/sapi_key`), `/info`, Python SDK pointer. |
+| `blocklists.md` | CRUD, add/remove/bulk IPs + expiration, download, subscribers, shares, search. |
+| `allowlists.md` | CRUD, items + expiration, subscribers (cross-links the `crowdsec` skill's *local* allowlists). |
+| `integrations.md` | Firewall/appliance feeds: create (entity_type/output_format), Basic-auth content pull + pagination, decisions stream, vendor table. |
+| `decisions.md` | Org-level decisions + aggregated (short; prefer blocklists). |
+| `metrics.md` | `/metrics/remediation` ROI (raw vs computed). |
+
+CTI (the tracker surface — cves/vendors/fingerprints/tags/products/tracker-*) is **deferred to a
+future iteration**: it needs a CTI-scoped key (a blocklist/decision key gets `403`). When added,
+restore a `cti.md` row here.
+
+Conventions differ from the `crowdsec` skill in two ways: **no platform axis** (the "environment" is
+HTTPS, not systemd/docker/k8s — so no per-platform prefixes), and recipes are `curl` the skill runs
+on the user's behalf, every mutating one gated behind explicit confirmation. Verification uses
+`env: sapi` in the `verified:` block. When you add/rename a resource file here, update this table in
+the same change.
 
 ## Testing
 
