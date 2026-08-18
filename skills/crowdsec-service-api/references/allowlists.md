@@ -22,8 +22,8 @@ blocklists.
 > **Cloud vs local:** this is the *org-wide, Console-pushed* allowlist. A single
 > engine's local allowlist/whitelist is different — see the `crowdsec` skill,
 > `references/configure/allowlists.md`. A cloud allowlist only reaches an engine
-> that is enrolled, **subscribed here**, and has `console_management` enabled
-> locally (`crowdsec` skill → `references/install/console.md`).
+> that is enrolled and **subscribed here** (`crowdsec` skill →
+> `references/install/console.md`).
 >
 > Mutating calls are marked ⚠. `B=https://admin.api.crowdsec.net/v1`, `KEY` set.
 
@@ -33,7 +33,7 @@ blocklists.
 `name` is required; `description` optional.
 ```bash
 curl -s -H "x-api-key: $KEY" -H 'Content-Type: application/json' -X POST "$B/allowlists" -d '{
-  "name": "corp-egress", "description": "office + CDN egress IPs"
+  "name": "corp-sources", "description": "office + CDN source IPs"
 }'
 curl -s -H "x-api-key: $KEY" "$B/allowlists"                 # list (paginated)
 curl -s -H "x-api-key: $KEY" -X DELETE "$B/allowlists/$ID"   # removes list + subscriptions

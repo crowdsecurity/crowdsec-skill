@@ -36,17 +36,18 @@ engine API — there is no `cscli` here, only HTTPS.
 | Configure a **local** allowlist/whitelist on one engine | the `crowdsec` skill → `references/configure/allowlists.md` |
 
 Cloud allowlists/blocklists here only take effect on an engine once that engine
-is enrolled **and** subscribed (and `console_management` is enabled locally). The
-enrollment half lives in the `crowdsec` skill.
+is enrolled **and** subscribed to the list. The enrollment half lives in the
+`crowdsec` skill.
 
-## Acting on the user's behalf — operating contract
+## Operating contract
 
-This skill runs real cloud mutations. Follow this every session.
+Every call here hits production and can change what subscribed engines enforce.
 
-**1 — Resolve the key** (never echo it, never write it into the repo):
+**1 — Resolve the key.** Never echo it, never write it anywhere but the file
+below:
 ```bash
 KEY="${CROWDSEC_SAPI_KEY:-$(cat ~/.config/crowdsec/sapi_key 2>/dev/null)}"
-[ -n "$KEY" ] || echo "No key: export CROWDSEC_SAPI_KEY or write it to ~/.config/crowdsec/sapi_key (chmod 0600)"
+[ -n "$KEY" ] || echo "No key: export CROWDSEC_SAPI_KEY or store it in ~/.config/crowdsec/sapi_key (chmod 0600)"
 ```
 
 **2 — Validate before acting** — one read call confirms the key and shows *which
@@ -57,13 +58,13 @@ curl -s -H "x-api-key: $KEY" https://admin.api.crowdsec.net/v1/info
 ```
 
 **3 — Classify read vs mutate.** `GET` / download / `POST …/search` are safe —
-run them directly. Every **`POST` / `PATCH` / `DELETE` that changes state** needs
-**explicit user confirmation first**; show the exact URL and JSON body you will
-send, then wait.
+run them directly. Every **`POST` / `PATCH` / `DELETE` that changes state**
+requires **explicit confirmation first**: present the exact URL and JSON body,
+then wait for a yes.
 
-**4 — Extra-danger operations** — warn in plain words *before* the confirm,
-because subscribed engines **enforce** these lists, so a change can block or
-unblock real traffic and is hard to undo:
+**4 — Extra-danger operations** — spell out the consequence in plain words
+*before* the confirm, because subscribed engines **enforce** these lists, so a
+change can block or unblock real traffic and is hard to undo:
 
 | Operation | Why it's dangerous |
 |---|---|
@@ -74,8 +75,8 @@ unblock real traffic and is hard to undo:
 | `…/shares` / unshare | Grants/revokes another **organization** access. |
 | any `…/subscribers` change | Changes which engines/bouncers enforce the list. |
 
-**5 — Clean up** any throwaway objects you created while testing, and remind the
-user to rotate a key that was pasted into chat.
+**5 — Clean up** any object created only to test a recipe. A key that was exposed
+anywhere in transit must be rotated.
 
 ## Step — Detect the intent
 
@@ -107,15 +108,15 @@ where `B=https://admin.api.crowdsec.net/v1`.
 
 ## Hard don'ts
 
-- Don't run any mutating call without showing the user the URL + body and getting
-  a yes (see operating contract §3–4).
+- Don't send a mutating call before the URL + body have been shown and approved
+  (see operating contract §3–4).
 - Don't use `…/ips/bulk_overwrite` when the user means "add a few IPs" — that's
   `…/ips`. `bulk_overwrite` wipes the list first.
-- Don't print, log, or commit the API key. Resolve it from the env var or
-  `~/.config/crowdsec/sapi_key` only.
+- Don't print, log, or persist the API key anywhere but
+  `~/.config/crowdsec/sapi_key`. Resolve it from there or from the env var only.
 - Don't assume a cloud allowlist/blocklist is enforced just because the API call
-  succeeded — the engine must be enrolled, subscribed, and have
-  `console_management` on (that's the `crowdsec` skill's job to verify).
+  succeeded — the engine must be enrolled and subscribed, and it pulls on a poll
+  cycle (verify locally via the `crowdsec` skill).
 
 ## Docs
 

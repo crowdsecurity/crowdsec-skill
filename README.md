@@ -2,13 +2,13 @@
 
 <img src="https://raw.githubusercontent.com/crowdsecurity/crowdsec-docs/main/crowdsec-docs/static/img/crowdsec_logo.png" alt="CrowdSec" width="280">
 
-# CrowdSec skill for Claude Code
+# CrowdSec skills
 
-**Install, configure, operate, and debug [CrowdSec](https://doc.crowdsec.net) — straight from your terminal, with Claude doing the heavy lifting.**
+**Install, configure, operate, and debug [CrowdSec](https://doc.crowdsec.net) — straight from your terminal, with your coding agent doing the heavy lifting.**
 
 [![Version](https://img.shields.io/badge/version-0.2.3-blue)](.claude-plugin/plugin.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-8A2BE2)](https://docs.claude.com/en/docs/claude-code/skills)
+[![Agent Skills](https://img.shields.io/badge/Agent-Skills-8A2BE2)](https://docs.claude.com/en/docs/claude-code/skills)
 [![CrowdSec](https://img.shields.io/badge/CrowdSec-docs-orange)](https://docs.crowdsec.net)
 
 </div>
@@ -54,9 +54,9 @@ This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-
 ## 🚀 Install
 
 The skill loads automatically once installed. Just talk to
-Claude about CrowdSec.
+your agent about CrowdSec.
 
-**On Claude**
+**On Claude Code**
 
 ```text
 /plugin marketplace add crowdsecurity/crowdsec-skill
@@ -89,7 +89,7 @@ npx skills add  crowdsecurity/crowdsec-skill
 
 ## 💬 Example prompts
 
-Once installed, Claude picks the skill up whenever your prompt involves CrowdSec:
+Once installed, the agent picks the skill up whenever your prompt involves CrowdSec:
 
 - _"Install CrowdSec on this server and set up the nginx bouncer."_
 - _"Deploy CrowdSec in my Kubernetes cluster and enroll it in the Console."_

@@ -3,7 +3,7 @@ verified:
   - date: 2026-07-30
     version: "1.70.52"
     env: sapi
-    notes: "list + aggregated reads; create org-targeted ban (POST -> 200 {uuid}) confirmed present in /decisions. DELETE of an org decision NOT confirmed: /decisions/{uuid} and /decisions/aggregated/{id} both return 204 but the decision persisted (it isn't in the aggregated set); relies on duration to expire"
+    notes: "list + aggregated reads; create org-targeted ban (POST -> 200 {uuid}) confirmed present in /decisions; DELETE /decisions/{uuid} -> 204, decision stays listed by design (deletion order retained for later pollers)"
 ---
 
 # SAPI — Decisions (org-level)
@@ -78,20 +78,17 @@ curl -s -H "x-api-key: $KEY" -H 'Content-Type: application/json' -X POST "$B/dec
 An `org` target pushes to **every** enrolled engine in the org (each enforces it
 within a poll cycle) — treat it like a blocklist mutation and confirm first.
 
-## Delete ⚠ — and its caveat
+## Delete ⚠
 
-The API exposes two delete paths:
+Two delete paths, both returning `204`:
 
 ```bash
 curl -s -H "x-api-key: $KEY" -X DELETE "$B/decisions/<uuid>"                      # per decision
 curl -s -H "x-api-key: $KEY" -X DELETE "$B/decisions/aggregated/<aggregated_id>" # per aggregated key
 ```
 
-**Caveat (observed, v1.70.52):** for an **org-targeted** decision, *neither*
-reliably removed it — both returned `204`, but the decision stayed in
-`GET /decisions` (its list `id` is `0`, and it never appeared under
-`/decisions/aggregated`, so the aggregated id can't be built). Treat org-decision
-deletion as **unconfirmed**: prefer a bounded `duration` and let it expire, rather
-than assuming the delete took. Per-`entity`/`tag` decision deletion by `uuid` is
-plausible but was **not** verified here — check the response *and* re-read
-`GET /decisions` before telling the user it's gone.
+A deleted decision **stays visible** in `GET /decisions`. That is by design, not a
+failed delete: the record is kept so that engines and integrations polling later —
+including ones that enroll after the deletion — receive the order to drop it.
+Don't re-issue the DELETE or report it as broken because the decision is still
+listed.

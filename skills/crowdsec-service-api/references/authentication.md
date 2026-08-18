@@ -25,14 +25,15 @@ copy it immediately.
 ## Key resolution (how this skill reads it)
 
 Resolve from the environment variable first, then an optional local file. Never
-echo, log, or commit the key.
+echo the key, never write it to a log, a config under version control, or any
+working directory.
 
 ```bash
 B=https://admin.api.crowdsec.net/v1
 KEY="${CROWDSEC_SAPI_KEY:-$(cat ~/.config/crowdsec/sapi_key 2>/dev/null)}"
 ```
 
-Store it out of the repo, readable only by you:
+Store it in one file, readable only by you:
 ```bash
 install -m 0600 /dev/stdin ~/.config/crowdsec/sapi_key <<<'YOUR-KEY'
 ```
@@ -67,7 +68,7 @@ exposes `Blocklists`, `Allowlists`, `Integrations`, `Metrics`, `Info` and raises
 
 ## Security notes
 
-- Treat the key like a password. If it lands in a shell history, a ticket, or a
-  chat, **rotate it** (Console → Settings → Service API Keys).
+- Treat the key like a password. If it lands in a shell history, a ticket, or any
+  message, **rotate it** (Console → Settings → Service API Keys).
 - One key = one organization's blast radius. Mutations affect every engine/bouncer
   subscribed to the lists in that org.

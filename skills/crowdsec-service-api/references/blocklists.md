@@ -20,7 +20,7 @@ expiration). You add IPs via API, then **subscribe** engines / bouncers / firewa
 integrations / whole orgs to it — they pull and **enforce** it. You can also
 **share** a blocklist read/write with another organization.
 
-> Mutating calls below are marked ⚠ — show the user the URL + body and get a yes
+> Mutating calls below are marked ⚠ — the URL + body must be shown and approved
 > before sending (see SKILL.md operating contract). All snippets assume
 > `B=https://admin.api.crowdsec.net/v1` and `KEY` set.
 
@@ -106,9 +106,8 @@ curl -s -H "x-api-key: $KEY" "$B/blocklists/$ID/subscribers"                 # l
 curl -s -H "x-api-key: $KEY" -X DELETE "$B/blocklists/$ID/subscribers/<entity_id>"   # ⚠ unsubscribe
 ```
 
-An enrolled engine only enforces a subscribed blocklist once it has
-`console_management` enabled locally (`crowdsec` skill → `references/install/console.md`);
-it then pulls the decisions over PAPI within a poll cycle.
+An enrolled, subscribed engine pulls the blocklist's decisions over PAPI within a
+poll cycle (`crowdsec` skill → `references/install/console.md` for enrollment).
 
 To feed a **firewall appliance**, subscribe the *integration* (`entity_type:
 firewall_integration`, `ids:[<integration_id>]`) — the device then pulls the

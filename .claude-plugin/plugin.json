@@ -5,7 +5,7 @@
     "./skills/crowdsec",
     "./skills/crowdsec-service-api"
   ],
-  "description": "CrowdSec skills for Claude Code: an operational skill (install/configure/operate/debug the engine, cscli, bouncers, WAF across bare-metal/Docker/Kubernetes) and a Service API skill (drive the premium Console cloud API — blocklists, allowlists, firewall integrations, metrics, decisions).",
+  "description": "CrowdSec skills: an operational skill (install/configure/operate/debug the engine, cscli, bouncers, WAF across bare-metal/Docker/Kubernetes) and a Service API skill (drive the premium Console cloud API — blocklists, allowlists, firewall integrations, metrics, decisions).",
   "author": {
     "name": "CrowdSec",
     "url": "https://github.com/crowdsecurity"
