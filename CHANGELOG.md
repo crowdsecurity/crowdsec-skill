@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-05-19
 
 ### Added
-- Initial release of the CrowdSec operational skill for Claude Code.
+- Initial release of the CrowdSec operational skill.
 - `crowdsec/SKILL.md` covering install, configure, operate, and debug flows for
   bare-metal/systemd, Docker, and Kubernetes/Helm.
 - Reference docs:

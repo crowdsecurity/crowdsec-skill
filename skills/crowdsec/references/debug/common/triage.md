@@ -25,7 +25,7 @@ bash ${CLAUDE_SKILL_DIR}/scripts/diagnose.sh --log-lines 500 --output /tmp/cs-tr
 
 `diagnose.sh` wraps `cscli support dump --fast` — the official forensic snapshot — and emits two things:
 
-- a **sectioned text report** to stdout (or `--output`) that Claude reads to triage in-conversation
+- a **sectioned text report** to stdout (or `--output`), meant to be read straight through for triage
 - a **canonical zip archive** at `/tmp/crowdsec-support-<timestamp>.zip` (or `--archive`) that contains everything CrowdSec support would ask for: prometheus metrics, system info, redacted config, pprof goroutine/heap dumps, full logs, hub state, etc. Hand this archive to CrowdSec support without re-running anything.
 
 The script auto-detects systemd / docker / k8s. For non-default deployments:

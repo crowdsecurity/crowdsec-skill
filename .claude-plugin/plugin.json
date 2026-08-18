@@ -2,9 +2,10 @@
   "name": "crowdsec",
   "version": "0.2.3",
   "skills": [
-    "./skills/crowdsec"
+    "./skills/crowdsec",
+    "./skills/crowdsec-service-api"
   ],
-  "description": "Operational skill for installing, configuring, operating, and debugging CrowdSec (cscli, LAPI/CAPI, hub, bouncers, WAF/AppSec) across bare-metal, Docker, and Kubernetes.",
+  "description": "CrowdSec skills: an operational skill (install/configure/operate/debug the engine, cscli, bouncers, WAF across bare-metal/Docker/Kubernetes) and a Service API skill (drive the premium Console cloud API — blocklists, allowlists, firewall integrations, metrics, decisions).",
   "author": {
     "name": "CrowdSec",
     "url": "https://github.com/crowdsecurity"
@@ -18,6 +19,12 @@
     "waf",
     "appsec",
     "bouncer",
-    "fail2ban"
+    "fail2ban",
+    "console",
+    "service-api",
+    "sapi",
+    "blocklist",
+    "integration",
+    "cloud"
   ]
 }

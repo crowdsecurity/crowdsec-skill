@@ -2,7 +2,7 @@
 # diagnose.sh — CrowdSec first-look triage.
 #
 # Wraps `cscli support dump --fast` (the official forensic snapshot) and emits a
-# curated, Claude-readable text report. The underlying zip archive is preserved
+# curated, human-readable text report. The underlying zip archive is preserved
 # on disk so you can hand it to CrowdSec support without re-running anything.
 #
 # What ends up where:

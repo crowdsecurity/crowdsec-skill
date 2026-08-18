@@ -117,6 +117,15 @@ local-vs-Console allowlist distinction.
   register bouncers normally with `cscli bouncers add` and they surface in the
   Console via the enrolled LAPI.
 
+## Managing the Console programmatically
+
+This page covers **enrolling** an engine. To manage Console objects by API —
+create blocklists/allowlists, push IPs, wire firewall integrations, pull
+remediation metrics — use the **`crowdsec-service-api`** skill (the premium cloud
+Service API at `admin.api.crowdsec.net`). Enroll here first; a cloud list only
+reaches this engine once it's enrolled, subscribed there, and has
+`console_management` enabled (§2).
+
 ## Next step
 
 Confirm detection + sharing end-to-end with

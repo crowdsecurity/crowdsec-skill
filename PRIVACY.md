@@ -1,14 +1,14 @@
 # Privacy Policy
 
-**Plugin:** `crowdsec` (CrowdSec skills for Claude Code)
+**Plugin:** `crowdsec` (CrowdSec skills)
 **Maintainer:** CrowdSec — <https://github.com/crowdsecurity>
 **Last updated:** 2026-06-11
 
 ## Summary
 
 This plugin collects no personal data. It is a set of documentation skills and
-helper scripts that run **locally** inside Claude Code on your machine. It does not transmit 
-data CrowdSec or any third party on its own.
+helper scripts that run **locally** on your machine. It does not transmit
+data to CrowdSec or any third party on its own.
 
 ## What the plugin is
 
@@ -20,7 +20,7 @@ maintainer never receives any data as a result of you installing or using it.
 ## Third-party services (acting on the skill's guidance)
 
 The plugin's purpose is to help you operate **your own** CrowdSec deployment.
-When you follow its guidance — or run its helper scripts — Claude Code or those
+When you follow its guidance — or run its helper scripts — your agent or those
 scripts may contact CrowdSec services **using credentials you supply**, for
 example:
 

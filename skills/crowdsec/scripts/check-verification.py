@@ -21,12 +21,10 @@ import datetime as dt
 import sys
 from pathlib import Path
 
-# skills/crowdsec/scripts/check-verification.py -> skills/crowdsec
+# skills/crowdsec/scripts/check-verification.py -> skills/crowdsec (the default --root)
 SKILL_ROOT = Path(__file__).resolve().parent.parent
-REFERENCES = SKILL_ROOT / "references"
-SKILL_MD = SKILL_ROOT / "SKILL.md"
 
-CANONICAL_ENVS = {"systemd", "docker", "k8s"}
+CANONICAL_ENVS = {"systemd", "docker", "k8s", "sapi"}
 REQUIRED_KEYS = ("date", "version", "env")
 OPTIONAL_KEYS = ("notes",)
 ALLOWED_KEYS = set(REQUIRED_KEYS) | set(OPTIONAL_KEYS)
@@ -114,14 +112,25 @@ def main() -> int:
         default=180,
         help="flag verified entries older than this many days (default: 180)",
     )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=SKILL_ROOT,
+        help="skill directory to check (default: this script's own skill). "
+        "Point it at a sibling skill, e.g. --root skills/crowdsec-service-api",
+    )
     args = parser.parse_args()
 
+    skill_root = args.root.resolve()
+    references = skill_root / "references"
+    skill_md = skill_root / "SKILL.md"
+
     today = dt.date.today()
-    docs = sorted(REFERENCES.rglob("*.md"))
-    if SKILL_MD.exists():
-        docs.append(SKILL_MD)
+    docs = sorted(references.rglob("*.md"))
+    if skill_md.exists():
+        docs.append(skill_md)
     if not docs:
-        print(f"No reference docs found under {REFERENCES}", file=sys.stderr)
+        print(f"No reference docs found under {references}", file=sys.stderr)
         return 1
 
     rows: list[tuple[str, str, str, str, str]] = []
@@ -130,7 +139,7 @@ def main() -> int:
     errors: list[str] = []
 
     for doc in docs:
-        rel = doc.relative_to(SKILL_ROOT).as_posix()
+        rel = doc.relative_to(skill_root).as_posix()
         try:
             frontmatter = split_frontmatter(doc.read_text(encoding="utf-8"))
             entries = parse_verified(frontmatter) if frontmatter is not None else None
