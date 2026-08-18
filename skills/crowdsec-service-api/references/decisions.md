@@ -28,8 +28,7 @@ engines; pick by shape of the task:
 
 > **Access:** the `/decisions` group needs a **decision-scoped key**. A key scoped
 > only to blocklist/allowlist management gets `403 {"message":"Forbidden"}` on
-> every call here — an entitlement gap, not a bad request. A blocklist-only key
-> silently fails.
+> every call here — an entitlement gap, not a bad request.
 >
 > Mutating calls marked ⚠. `B=https://admin.api.crowdsec.net/v1`, `KEY` set.
 
