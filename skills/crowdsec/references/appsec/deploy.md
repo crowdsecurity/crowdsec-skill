@@ -128,6 +128,9 @@ The smoke test above proves the WAF works. For production you point a real bounc
 | `github.com/hslatman/caddy-crowdsec-bouncer` (Caddy module) | Two handlers required in the Caddy route — **`appsec` AND `crowdsec`** (see critical note below). The `appsec_url` field goes in the top-level `crowdsec` app config block. |
 | Any other AppSec-aware bouncer | Look for an `appsec_url` / `appsec.url` field; auth is always the bouncer's existing API key. |
 
+Bot detection needs a bouncer that explicitly supports it — the endpoint alone is not enough.
+See [bot-detection/deploy.md](./bot-detection/deploy.md) § 3 for the support matrix.
+
 After wiring: send a request through the real web server (not directly to 7422) and confirm the verdict propagates. The bouncer's own log should show one line per consultation; AppSec's `cscli metrics show appsec` increments.
 
 > **Critical — Caddy (`hslatman/caddy-crowdsec-bouncer`) requires TWO handlers:**

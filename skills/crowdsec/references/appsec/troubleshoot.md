@@ -151,9 +151,11 @@ Order of fixes from cheapest to most invasive:
 
 Do **not** whitelist by client IP at the scenarios layer for inband false-positives — scenarios-layer whitelists and **allowlists** (see [../configure/allowlists.md](../configure/allowlists.md)) only affect *decisions*. The inband 403 fires before any decision is written, so neither tool helps with inband false positives. Fix at the appsec-config.
 
-## 7. Captcha doesn't appear (only 403 / blank page)
+## 7. Captcha or challenge doesn't appear (only 403 / blank page)
 
-AppSec returns the *verdict* (`captcha`); the bouncer is responsible for rendering it. Causes:
+For the **bot-detection challenge**, go to [bot-detection/troubleshoot.md](./bot-detection/troubleshoot.md).
+
+For **captcha**: AppSec returns the *verdict* (`captcha`); the bouncer is responsible for rendering it. Causes:
 
 - Bouncer has no captcha provider configured (hCaptcha / reCAPTCHA / Turnstile keys missing).
 - `bouncer_blocked_http_code` and `bouncer_passthrough_http_code` in the appsec-config mismatch what the bouncer expects.

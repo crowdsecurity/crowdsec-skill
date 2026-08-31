@@ -97,7 +97,7 @@ Disabling a rule the appsec-config still references will trip `unable to load in
 
 ## Hooks
 
-Hooks let you mutate the request, add context, or short-circuit evaluation. They fire at three phases:
+Hooks let you mutate the request, add context, or short-circuit evaluation. They fire at these phases:
 
 | Phase | When | Typical use |
 |---|---|---|
@@ -105,6 +105,18 @@ Hooks let you mutate the request, add context, or short-circuit evaluation. They
 | `pre_eval` | Before any rule runs against a request. | Inject custom variables from request headers, classify the request, decide if rules should evaluate at all. |
 | `on_match` | After a rule has matched but before the verdict is returned. | Change the action (`ban` → `captcha`), set a custom HTTP response, append context for scenarios. |
 | `post_eval` | After all rules have evaluated. | Log enrichment; rarely modifies the verdict. |
+| `on_challenge` | Bot detection only: a request carrying a valid challenge cookie, before `pre_eval`. | Re-check the fingerprint, escalate difficulty, drop. |
+| `on_challenge_submit` | Bot detection only: at the challenge `/submit` POST, before the cookie is issued. | Score the fingerprint, reject the submission. |
+
+`on_challenge` and `on_challenge_submit` belong to bot detection, which also adds two top-level
+appsec-config keys (`challenge:` and `data:` with `type: bots`):
+
+| You want to… | Go to |
+|---|---|
+| Stop challenging a path, host, or a crawler you trust | [bot-detection/customize.md](./bot-detection/customize.md) § Let legitimate traffic through |
+| Score a fingerprint signal differently, or reject on your own criteria | [bot-detection/customize.md](./bot-detection/customize.md) § Catch bots the shipped scoring misses |
+| Share challenge cookies across several engines, or change cookie lifetime | [bot-detection/configure.md](./bot-detection/configure.md) |
+| Know which hook exposes which helper | [bot-detection/customize.md](./bot-detection/customize.md) § Which hook, which helper |
 
 Hooks are written in the `expr` language. They are deterministic and must not perform I/O. Errors in hooks bubble to the agent log and (for `pre_eval` / `on_match`) can drop or duplicate a request — test thoroughly with `cscli explain` (where supported) before enabling in production.
 
