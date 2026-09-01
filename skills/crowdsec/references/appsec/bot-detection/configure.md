@@ -19,7 +19,7 @@ field with last-non-nil winning — so never edit the hub files. Ship a small ov
 name: mycorp/appsec-bot-challenge-overlay
 
 challenge:
-  master_secret: "efb7789044ed092ae90c139848be7687652920064dccc40db1eeb926a8050930"
+  master_secret: "<64+ hex chars; generate with: openssl rand -hex 32>"
   cookie_ttl: 2h
 ```
 
