@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `references/appsec/{overview,configure,deploy,troubleshoot}.md` — `challenge` action,
   `on_challenge` / `on_challenge_submit` hooks, and pointers into `bot-detection/`.
 - `references/configure/bouncers/web-servers.md` — per-bouncer bot-detection capability column.
-- `references/configure/profiles.md` — note that `challenge` is not a LAPI decision type.
 
 ## [0.2.3] - 2026-05-29
 

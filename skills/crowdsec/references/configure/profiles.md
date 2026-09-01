@@ -77,10 +77,6 @@ on_success: break
 | `captcha` | Serve a challenge | Only **web-server / AppSec bouncers** can render captcha; a firewall bouncer can't and treats it as no-op. Needs captcha provider config. |
 | `throttle` | Rate-limit | Bouncer-dependent support. |
 
-`challenge` (bot detection) is **not** a decision type and cannot be set here — it is an
-AppSec action decided per request by an appsec-config. See
-[../appsec/bot-detection/overview.md](../appsec/bot-detection/overview.md).
-
 ### Escalation with `duration_expr`
 
 Longer bans for repeat offenders — uncomment in the default profile:
