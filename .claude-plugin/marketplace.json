@@ -11,7 +11,7 @@
     {
       "name": "crowdsec",
       "source": "./",
-      "description": "CrowdSec skills: an operational skill (engine, cscli, hub, bouncers, WAF/AppSec across bare-metal, Docker, Kubernetes) and a Service API skill (premium Console cloud API \u2014 blocklists, allowlists, firewall integrations, metrics, decisions).",
+      "description": "CrowdSec skills: an operational skill (engine, cscli, hub, bouncers, WAF/AppSec and bot detection across bare-metal, Docker, Kubernetes) and a Service API skill (premium Console cloud API \u2014 blocklists, allowlists, firewall integrations, metrics, decisions).",
       "version": "0.3.0",
       "author": {
         "name": "CrowdSec",
