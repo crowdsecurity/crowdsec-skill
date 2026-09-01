@@ -1,6 +1,6 @@
 ---
 name: crowdsec
-description: Use when the user is installing, configuring, operating, or debugging CrowdSec — including cscli, LAPI/CAPI, hub collections, parsers/scenarios/whitelists deployment, bouncers (firewall, nginx, traefik, caddy), WAF (AppSec component) deployment, profiles, notifications, upgrades, and fail2ban migration. Covers bare-metal/systemd, Docker, Kubernetes/Helm, and CrowdSec Console enrollment. This is an operational skill — it does not author WAF rules, scenarios, or parsers.
+description: Use when the user is installing, configuring, operating, or debugging CrowdSec — including cscli, LAPI/CAPI, hub collections, parsers/scenarios/whitelists deployment, bouncers (firewall, nginx, traefik, caddy), WAF (AppSec component) deployment, bot detection / AppSec challenge mode (blocking headless browsers and scrapers, allowing verified crawlers), profiles, notifications, upgrades, and fail2ban migration. Covers bare-metal/systemd, Docker, Kubernetes/Helm, and CrowdSec Console enrollment. This is an operational skill — it does not author WAF rules, scenarios, or parsers.
 ---
 
 # CrowdSec — operations, deployment, configuration, and debugging
@@ -17,6 +17,7 @@ thing. This skill uses both interchangeably.
 | Configure acquisition, hub, profiles, notifications | this skill |
 | Install and wire a bouncer (firewall, nginx, traefik, caddy) | this skill |
 | Deploy the WAF (AppSec component) | this skill |
+| Deploy and tune bot detection (AppSec challenge mode) | this skill |
 | Debug "logs not parsing" / "no alerts" / "bouncer not blocking" | this skill |
 | Migrate from fail2ban | this skill |
 | **Write** a parser, scenario, or WAF (AppSec) rule | the `crowdsec-local-mcp` mcp |
@@ -96,6 +97,20 @@ onto the official repo first: [references/operate/upgrades.md](./references/oper
 Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 ([references/operate/upgrades.md](./references/operate/upgrades.md) happy path).
 
+## Step 1.6 — Feature compatibility
+
+Some features only exist past a given engine version, and a few also need a capable bouncer.
+Check here before debugging "the config is right but nothing happens" — on an older engine the
+answer is an upgrade, not a config change.
+
+| Feature | Min engine | Also needs | Docs |
+|---|---|---|---|
+| Bot detection (AppSec challenge mode) — *alpha* | **1.8.0** | A bot-detection-capable bouncer (nginx, OpenResty, HAProxy SPOA, Traefik, Envoy) and a host that can run WASM in compiler mode | [references/appsec/bot-detection/](./references/appsec/bot-detection/) |
+| Glob patterns in `appsec_configs` | **1.8.0** | — | [references/appsec/bot-detection/deploy.md](./references/appsec/bot-detection/deploy.md) § 2 |
+
+Version-gated behaviour is recorded here rather than repeated in each reference doc — when a
+feature is added, give it a row instead of sprinkling "x.y+" through the prose.
+
 ## Step 2 — Detect the intent
 
 | Cue from user | Go to |
@@ -117,6 +132,7 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | "caddy bouncer", "caddy module / xcaddy" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) § Caddy |
 | "wrong source IP", "real client IP", "behind Cloudflare / reverse proxy / NPM", "X-Forwarded-For", "everyone shows as the proxy IP" | [references/configure/bouncers/web-servers.md](./references/configure/bouncers/web-servers.md) — per-bouncer real-IP/trusted-proxy sections |
 | "AppSec", "WAF", "virtual patching", "block by request shape" | [references/appsec/](./references/appsec/) — overview, deploy, configure, troubleshoot |
+| "bot detection", "challenge mode", "JS challenge", "proof of work", "block headless browsers / puppeteer / selenium / scrapers", "let Googlebot through" | [references/appsec/bot-detection/](./references/appsec/bot-detection/) — overview, deploy, configure, customize, troubleshoot |
 | "Console", "enroll", "share signals" | [references/install/console.md](./references/install/console.md) |
 | "upgrade", "back up", "roll back", "new version", "tainted items after upgrade" | [references/operate/upgrades.md](./references/operate/upgrades.md) |
 | "old/outdated version", "`cscli` command or flag missing", "hub item won't install", "behavior doesn't match the docs", "installed from the distro package" | [references/operate/upgrades.md](./references/operate/upgrades.md) § Detect & fix an outdated / distro-packaged install (see **Step 1.5** above) |
@@ -131,6 +147,7 @@ Hub. If it's far behind `version.crowdsec.net/latest`, pull a newer tag
 | **Debug — by symptom** · "decision exists but not blocked" | [references/debug/symptoms/not-blocked.md](./references/debug/symptoms/not-blocked.md) |
 | **Debug — by symptom** · "bouncer blocks everything", "locked out of all services", "every request 403 after adding the bouncer" | [references/debug/symptoms/not-blocked.md](./references/debug/symptoms/not-blocked.md) § 7 — Inverse symptom |
 | **Debug — by feature** · AppSec/WAF not blocking, false positives, captcha | [references/appsec/troubleshoot.md](./references/appsec/troubleshoot.md) |
+| **Debug — by feature** · challenge never served, endless challenge loop, real crawlers being challenged, everything blocked after enabling bot detection | [references/appsec/bot-detection/troubleshoot.md](./references/appsec/bot-detection/troubleshoot.md) |
 | "switch from fail2ban" | [references/migrate/from-fail2ban.md](./references/migrate/from-fail2ban.md) *(TODO — stub)* |
 
 For anything debug-shaped, the first move is almost always:

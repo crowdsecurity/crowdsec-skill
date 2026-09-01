@@ -28,6 +28,10 @@ If you are uncertain about any fact, statistic, date, or piece of technical info
   Depth and recipes belong in the reference docs, not in `SKILL.md`.
 - **Cover every environment.** Each command or recipe carries its systemd / docker / k8s variant,
   matching the existing convention. If some command or recipe is irrelevant to some variant it should be noted.
+- **Version-gate in one place.** Minimum engine versions and feature prerequisites live in
+  `SKILL.md` § Step 1.6 — Feature compatibility, one row per feature. Reference docs describe
+  behavior and point there; they do not sprinkle "1.8+" through the prose. Adding a
+  version-gated feature means adding a row in the same change.
 - **Anchor to canonical docs.** Each reference doc cites the upstream CrowdSec docs URL it derives
   from. Claims trace to canonical documentation, not to memory.
 
@@ -49,6 +53,7 @@ All depth lives in `references/<area>/`, organized by the axis that fits the are
 | `configure/` | **config domain** | `acquisition`, `hub`, `profiles`, `notifications`, `allowlists`; platforms merged inline. `configure/bouncers/` nests one level by **service type** (`firewall`, `web-servers`). |
 | `operate/` | **task** | `health-check`, `upgrades`, `multi-server`. |
 | `appsec/` | **lifecycle** | `overview` → `deploy` → `configure` → `troubleshoot` (the WAF/AppSec feature silo). |
+| `appsec/bot-detection/` | **lifecycle** | `overview` → `deploy` → `configure` → `customize` → `troubleshoot`. Bot detection (challenge mode) ships inside the AppSec component but is its own feature with its own install, config and failure modes, so it gets its own silo and its own routing rows — not a section of the WAF docs. `customize` is the extra step: authoring exemptions and scoring rules is the bulk of the work. |
 | `debug/` | **kind** | `common/` (`triage`, `errors`, `platform-gotchas`) + `symptoms/` (`parsing`, `no-alerts`, `not-blocked`). Feature troubleshooting is *routed to* the feature's own dir (e.g. AppSec → `appsec/troubleshoot.md`), not duplicated under debug/. |
 | `migrate/` | **source product** | `from-fail2ban`. |
 | `scripts/` | — | helper scripts (`diagnose.sh`, `check-verification.py`); stdlib/bash only, runnable in static checks. |

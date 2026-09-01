@@ -28,13 +28,17 @@ Both are served by the **same bouncer API key**. Wiring the WAF is just pointing
 
 Jump to the section for your web server. The shared model above (decisions + optional WAF, one key) and the stream-lag / real-IP pitfalls recur across all of them.
 
-| Section | Package / module | WAF (AppSec)? |
-|---|---|---|
-| § nginx | `crowdsec-nginx-bouncer` (lua) | ✅ |
-| § haproxy | `crowdsec-haproxy-spoa-bouncer` (SPOA) | ✅ |
-| § apache | `crowdsec-apache2-bouncer` (`mod_crowdsec`) | ❌ decisions only |
-| § Traefik | `crowdsec-bouncer-traefik-plugin` (Yaegi middleware) | ✅ |
-| § Caddy | `caddy-crowdsec-bouncer` (compiled-in module) | ✅ |
+| Section | Package / module | WAF (AppSec)? | Bot detection? |
+|---|---|---|---|
+| § nginx | `crowdsec-nginx-bouncer` (lua) | ✅ | ✅ (verified on 1.2.2) |
+| § haproxy | `crowdsec-haproxy-spoa-bouncer` (SPOA) | ✅ | ✅ (untested here) |
+| § apache | `crowdsec-apache2-bouncer` (`mod_crowdsec`) | ❌ decisions only | ❌ |
+| § Traefik | `crowdsec-bouncer-traefik-plugin` (Yaegi middleware) | ✅ | ✅ (untested here) |
+| § Caddy | `caddy-crowdsec-bouncer` (compiled-in module) | ✅ | ❌ |
+
+Bot detection (AppSec challenge mode) needs more from the bouncer than the WAF does —
+see [../../appsec/bot-detection/deploy.md](../../appsec/bot-detection/deploy.md) § 3. Upstream
+publishes no minimum bouncer version for it.
 
 ## nginx — `crowdsec-nginx-bouncer`
 

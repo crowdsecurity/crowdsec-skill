@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `references/appsec/bot-detection/` — bot detection / AppSec challenge mode (CrowdSec 1.8):
+  `overview.md` (PoW + fingerprint model, challenge envelope, event vocabulary, bouncer
+  support), `deploy.md` (bundle choice, glob acquisition, bouncer wiring, four-step smoke
+  test), `configure.md` (the `challenge:` block, multi-instance `master_secret`, difficulty
+  levels), `customize.md` (hook/helper matrix, exemptions, `MatchKnownBot` datafiles,
+  fingerprint scoring, custom scenarios), `troubleshoot.md` (10 symptoms + metrics reading).
+
+### Changed
+- `SKILL.md` — bot-detection routing rows, boundary row, trigger phrases in `description`,
+  and a new **Step 1.6 — Feature compatibility** table holding minimum engine versions and
+  feature prerequisites in one place.
+- `references/appsec/{overview,configure,deploy,troubleshoot}.md` — `challenge` action,
+  `on_challenge` / `on_challenge_submit` hooks, and pointers into `bot-detection/`.
+- `references/configure/bouncers/web-servers.md` — per-bouncer bot-detection capability column.
+
 ## [0.2.3] - 2026-05-29
 
 ## [0.2.2] - 2026-05-26

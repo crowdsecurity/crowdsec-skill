@@ -24,8 +24,10 @@ client ──► web server / ingress
               │                     │
               │       verdict ◄─────┘
               ▼
-     allow / 403 / captcha
+     allow / 403 / captcha / challenge
 ```
+
+`challenge` is the bot-detection verdict — a proof-of-work + device-fingerprint page the engine serves through the bouncer. See [bot-detection/](./bot-detection/).
 
 The AppSec endpoint listens on whatever address the AppSec acquisition file sets (`listen_addr`). Default is loopback; production deployments often expose it on a private interface so several bouncers can reach a single AppSec. `listen_addr` is interpreted per environment: bare-metal binds the host address directly; Docker needs `0.0.0.0` so the published port is reachable; Kubernetes reaches it via the AppSec Service DNS. See [deploy.md](./deploy.md).
 
@@ -38,6 +40,7 @@ The AppSec endpoint listens on whatever address the AppSec acquisition file sets
 | **appsec-rule** | A single matching rule (e.g. `crowdsecurity/vpatch-CVE-2017-9841`). Hub items in `/etc/crowdsec/appsec-rules/`. Authoring is out of this skill's scope — see SKILL.md. |
 | **inband rule** | Matches a request and returns `block` **immediately**. Produces a `kind: waf` alert with `Remediation: false` (no default ban — the 403 is already enforced per-request). Visibility: `cscli metrics show appsec` and `cscli alerts list`. |
 | **out-of-band rule** | Matches a request and emits an event into the regular scenarios/buckets pipeline, the same way log-derived events do. Produces normal `kind: crowdsec` alerts and (via profiles) decisions. |
+| **challenge** | The bot-detection verdict: the engine serves a JS proof-of-work and fingerprint page instead of blocking. Not a captcha, no third-party provider. See [bot-detection/overview.md](./bot-detection/overview.md). |
 | **remediation bouncer** | The component that actually enforces the verdict. AppSec doesn't block traffic — bouncers do. |
 
 ## Protocol — what the bouncer sends
