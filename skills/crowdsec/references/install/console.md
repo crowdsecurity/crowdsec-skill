@@ -27,7 +27,7 @@ Useful flags (from `cscli console enroll --help`):
 |---|---|
 | `--name <instance_name>` | Label this engine in the Console (default is the machine ID — set this on multi-engine fleets). |
 | `--tags <t> --tags <t>` | Group/filter engines in the Console. |
-| `--enable <opt>` / `--disable <opt>` | Set sharing options at enroll time (see options below). |
+| `--enable <opt>` / `--disable <opt>` | Set sharing options at enroll time (see options below), e.g. `--disable context`. |
 | `--overwrite` | Re-enroll an already-enrolled engine (e.g. moving it to another Console org). |
 | `--quick` | Non-interactive enroll. |
 
@@ -38,14 +38,14 @@ If `online_api_credentials.yaml` is missing, `cscli capi register` then reload
 ## 2 — Console options (the part users get wrong)
 
 `cscli console status` shows five toggles. Default state on a fresh
-enrolled engine:
+enrolled engine (`cscli console enroll` switches on `manual`, `tainted` and `context`; untested here):
 
 | Option | Default | What it does |
 |---|---|---|
 | `custom` | ✅ on | Forward alerts from your custom scenarios |
 | `tainted` | ✅ on | Forward alerts from tainted (locally modified) scenarios |
-| `manual` | ❌ off | Forward your manual `cscli decisions add` |
-| `context` | ❌ off | Forward alert context (richer detail, more data) |
+| `manual` | ✅ on | Forward your manual `cscli decisions add` |
+| `context` | ✅ on | Forward alert context (richer detail, more data) |
 | `console_management` | ❌ **off** | **Receive** decisions/allowlists *from* the Console |
 
 The trap: **`console_management` is off by default**. Centralized blocklists and
@@ -56,10 +56,11 @@ sudo cscli console enable console_management
 sudo systemctl reload crowdsec
 ```
 
-These map to `share_*` keys in `/etc/crowdsec/console.yaml`
-(`share_custom: true`, `share_tainted: true`, `share_manual_decisions: false`,
-`share_context: false`) — but use `cscli console enable/disable <opt>`, not hand
-edits. `all` is a valid target (`cscli console enable all`).
+These map to `share_*` keys in `/etc/crowdsec/console.yaml`. A never-enrolled
+engine falls back to `share_custom: true`, `share_tainted: true`,
+`share_manual_decisions: false`, `share_context: false`. Use
+`cscli console enable/disable <opt>`, not hand edits. `all` is a valid target
+(`cscli console enable all`).
 
 ## 3 — Verify enrollment
 

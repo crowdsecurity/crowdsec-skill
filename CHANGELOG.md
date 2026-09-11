@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `on_challenge` / `on_challenge_submit` hooks, and pointers into `bot-detection/`.
 - `references/configure/bouncers/web-servers.md` — per-bouncer bot-detection capability column.
 
+### Fixed
+- `references/install/console.md` — `cscli console enroll` enables `manual` and `context`
+  (with `tainted`); the `share_*` false defaults only apply to never-enrolled engines.
+
 ## [0.2.3] - 2026-05-29
 
 ## [0.2.2] - 2026-05-26
