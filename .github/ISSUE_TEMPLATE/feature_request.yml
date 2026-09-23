@@ -1,0 +1,46 @@
+name: Coverage request
+description: Ask for a new environment, bouncer, or workflow to be covered
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This skill is **operational** — it deploys, configures, and debugs CrowdSec. It does
+        not author detection content; parsers, scenarios, and WAF rules belong in the
+        [CrowdSec Hub](https://hub.crowdsec.net).
+
+  - type: textarea
+    id: request
+    attributes:
+      label: What should the skill be able to do?
+      description: The task you want to hand to your agent, in the words you'd use.
+      placeholder: '"Deploy CrowdSec on my Synology NAS and wire the firewall bouncer."'
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why isn't it covered today?
+      description: What the skill does instead — wrong answer, no answer, or partial.
+    validations:
+      required: true
+
+  - type: input
+    id: docs
+    attributes:
+      label: Canonical docs
+      description: Upstream CrowdSec documentation for this, if it exists.
+      placeholder: https://docs.crowdsec.net/docs/...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: verify
+    attributes:
+      label: Verification
+      description: |
+        Nothing ships unverified — every recipe must be run against a real environment first.
+      options:
+        - label: I have this environment and can test a PR against it
+          required: false
