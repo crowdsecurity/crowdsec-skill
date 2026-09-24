@@ -9,21 +9,12 @@ body:
         For problems with CrowdSec itself, open an issue on
         [crowdsecurity/crowdsec](https://github.com/crowdsecurity/crowdsec/issues).
 
-  - type: dropdown
+  - type: input
     id: area
     attributes:
       label: Area
-      options:
-        - crowdsec skill — install
-        - crowdsec skill — configure
-        - crowdsec skill — bouncers
-        - crowdsec skill — WAF / AppSec
-        - crowdsec skill — operate
-        - crowdsec skill — debug
-        - crowdsec skill — migrate
-        - crowdsec-service-api skill
-        - Packaging / install of the plugin itself
-        - Other
+      description: Which part of the skill. Free text — a path, a feature, or a rough description.
+      placeholder: install · configure · bouncers · WAF/AppSec · operate · debug · migrate · service-api · packaging
     validations:
       required: true
 
@@ -51,16 +42,12 @@ body:
     validations:
       required: true
 
-  - type: dropdown
+  - type: input
     id: env
     attributes:
       label: Environment
-      options:
-        - bare-metal / systemd
-        - Docker
-        - Kubernetes / Helm
-        - pfSense / OPNsense / FreeBSD
-        - Not environment-specific
+      description: Where you ran it.
+      placeholder: bare-metal/systemd · Docker · Kubernetes/Helm · pfSense/OPNsense · not environment-specific
     validations:
       required: true
 

@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   test), `configure.md` (the `challenge:` block, multi-instance `master_secret`, difficulty
   levels), `customize.md` (hook/helper matrix, exemptions, `MatchKnownBot` datafiles,
   fingerprint scoring, custom scenarios), `troubleshoot.md` (10 symptoms + metrics reading).
-- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) and
-  `.github/ISSUE_TEMPLATE/` (bug report, coverage request, routing config).
+- `CONTRIBUTING.md` and `.github/ISSUE_TEMPLATE/` (bug report, coverage request,
+  routing config).
 - `README.md` — **Reference docs** index linking each `references/` area.
 
 ### Changed

@@ -8,7 +8,7 @@
 [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills) that let Claude Code,
 Codex, and Claude.ai install, configure, operate, and debug
 [CrowdSec](https://docs.crowdsec.net) — the engine, `cscli`, bouncers, and the WAF/AppSec
-component — across bare-metal/systemd, Docker, pfSense, and Kubernetes/Helm.
+component — across bare-metal/systemd, Docker, pfSense/OPNsense, and Kubernetes/Helm.
 
 [![Version](https://img.shields.io/badge/dynamic/json?label=version&query=%24.version&url=https%3A%2F%2Fraw.githubusercontent.com%2Fcrowdsecurity%2Fcrowdsec-skill%2Fmain%2F.claude-plugin%2Fplugin.json&color=blue)](.claude-plugin/plugin.json)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -37,7 +37,7 @@ This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-
 
 | Area | Covered |
 |---|---|
-| **Install** | bare-metal/systemd · Docker · Kubernetes/Helm · pfSense · Console enrollment |
+| **Install** | bare-metal/systemd · Docker · Kubernetes/Helm · pfSense/OPNsense · Console enrollment |
 | **Bouncers** | firewall (iptables/nftables/ipset) · nginx · traefik · caddy · apache · and more |
 | **WAF / AppSec** | deploy · configure · troubleshoot the AppSec component · bot detection |
 | **Hub** | install collections/parsers/scenarios · update · debug |

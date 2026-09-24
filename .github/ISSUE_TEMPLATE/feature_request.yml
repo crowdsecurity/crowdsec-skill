@@ -9,6 +9,15 @@ body:
         not author detection content; parsers, scenarios, and WAF rules belong in the
         [CrowdSec Hub](https://hub.crowdsec.net).
 
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the skill this lands in. Free text.
+      placeholder: install · configure · bouncers · WAF/AppSec · operate · debug · migrate · service-api
+    validations:
+      required: true
+
   - type: textarea
     id: request
     attributes:
@@ -35,12 +44,12 @@ body:
     validations:
       required: false
 
-  - type: checkboxes
+  - type: textarea
     id: verify
     attributes:
-      label: Verification
+      label: Can you test it?
       description: |
         Nothing ships unverified — every recipe must be run against a real environment first.
-      options:
-        - label: I have this environment and can test a PR against it
-          required: false
+        Say whether you have this environment and could verify a PR against it.
+    validations:
+      required: false
