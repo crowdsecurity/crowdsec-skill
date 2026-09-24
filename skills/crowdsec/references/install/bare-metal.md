@@ -1,27 +1,64 @@
 ---
 verified:
-  - date: 2026-05-21
-    version: "1.7.8"
+  - date: 2026-09-24
+    version: "1.8.1"
     env: systemd
-    notes: "apt + systemd install path"
+    notes: "apt + systemd install path; Packagecloud any/any on Debian 13"
 ---
 
 # Install — bare metal (apt/dnf + systemd)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/linux> · post-install <https://docs.crowdsec.net/docs/next/getting_started/post_installation/acquisition>
 
-This is the operational layer over the canonical install. Follow the doc for the
-exact repo line for your distro; the notes below are what the doc doesn't tell
-you, for a 1.7.x Debian/Ubuntu box.
+This is the operational layer over the canonical install. The notes below cover
+native packages and systemd on Debian-like and RHEL-family systems.
 
 ## 1 — Add the repository and install
 
-The canonical path is the packagecloud one-liner, which drops a signed apt/dnf
-repo and installs the engine:
+### Debian-like systems: always use Packagecloud `any/any`
+
+For **every Debian-like installation** — Debian, Ubuntu, and all derivatives —
+the normal CrowdSec Packagecloud apt source **must use `any/any`**, not a
+detected distribution and codename. This applies to the standard CrowdSec
+Debian package repositories, including `crowdsec/crowdsec` and
+`crowdsec/crowdsec-testing`. It does not define how separate, product-specific
+bouncer repositories are configured.
+
+After running the CrowdSec repository installer, rewrite its generated `.list`
+file before `apt-get update` or package installation:
 
 ```bash
-curl -s https://install.crowdsec.net | sudo sh        # adds the repo
-sudo apt install crowdsec                              # or: sudo dnf install crowdsec
+curl -s https://install.crowdsec.net | sudo sh
+sudo sed -i -E \
+  's#(packagecloud.io/crowdsec/[^/]+)/(debian|ubuntu)/ [^ ]+#\1/any/ any#' \
+  /etc/apt/sources.list.d/crowdsec_*.list
+sudo apt-get update
+apt-cache policy crowdsec
+sudo apt-get install -y crowdsec
+```
+
+The rewrite changes source entries from:
+
+```text
+https://packagecloud.io/crowdsec/<repository>/debian/ <codename> main
+```
+
+or its `/ubuntu/` equivalent to:
+
+```text
+https://packagecloud.io/crowdsec/<repository>/any/ any main
+```
+
+Then run `sudo apt-get update` and use `apt-cache policy <package>` to confirm
+that the selected package comes from `<repository>/any any/main` before
+installing it. Do not substitute another Debian or Ubuntu codename as a
+compatibility workaround.
+
+On RHEL-family systems, use the normal installer and dnf path:
+
+```bash
+curl -s https://install.crowdsec.net | sudo sh
+sudo dnf install crowdsec
 ```
 
 What this lays down:
