@@ -1,27 +1,49 @@
 ---
 verified:
-  - date: 2026-05-21
-    version: "1.7.8"
+  - date: 2026-09-24
+    version: "1.8.1"
     env: systemd
-    notes: "apt + systemd install path"
+    notes: "apt + systemd install path; Packagecloud any/any on Debian 13"
 ---
 
 # Install — bare metal (apt/dnf + systemd)
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/installation/linux> · post-install <https://docs.crowdsec.net/docs/next/getting_started/post_installation/acquisition>
 
-This is the operational layer over the canonical install. Follow the doc for the
-exact repo line for your distro; the notes below are what the doc doesn't tell
-you, for a 1.7.x Debian/Ubuntu box.
+This is the operational layer over the canonical install. The notes below cover
+native packages and systemd on Debian-like and RHEL-family systems.
 
 ## 1 — Add the repository and install
 
-The canonical path is the packagecloud one-liner, which drops a signed apt/dnf
-repo and installs the engine:
+### Debian-like systems: the installer uses Packagecloud `any/any`
+
+For **every Debian-like installation** — Debian, Ubuntu, and all derivatives —
+use the normal CrowdSec installation script. The script configures the
+Packagecloud apt repository as **`any/any`**; users must not select a Debian or
+Ubuntu codename or rewrite the generated source.
 
 ```bash
-curl -s https://install.crowdsec.net | sudo sh        # adds the repo
-sudo apt install crowdsec                              # or: sudo dnf install crowdsec
+curl -s https://install.crowdsec.net | sudo sh
+sudo apt-get install -y crowdsec
+```
+
+If repository provenance needs checking, confirm that the source created by the
+installer contains `/any/ any main` and that apt selects it:
+
+```bash
+grep -R 'packagecloud.io/crowdsec/.*/any/ any main' /etc/apt/sources.list.d/
+apt-cache policy crowdsec
+```
+
+If that check shows `/debian/ <codename>` or `/ubuntu/ <codename>`, do not treat
+it as the expected installer output; investigate the installer or stale source
+file instead of documenting a manual codename substitution.
+
+On RHEL-family systems, use the normal installer and dnf path:
+
+```bash
+curl -s https://install.crowdsec.net | sudo sh
+sudo dnf install crowdsec
 ```
 
 What this lays down:
