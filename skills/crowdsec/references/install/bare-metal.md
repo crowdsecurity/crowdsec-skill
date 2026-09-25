@@ -15,44 +15,29 @@ native packages and systemd on Debian-like and RHEL-family systems.
 
 ## 1 — Add the repository and install
 
-### Debian-like systems: always use Packagecloud `any/any`
+### Debian-like systems: the installer uses Packagecloud `any/any`
 
 For **every Debian-like installation** — Debian, Ubuntu, and all derivatives —
-the normal CrowdSec Packagecloud apt source **must use `any/any`**, not a
-detected distribution and codename. This applies to the standard CrowdSec
-Debian package repositories, including `crowdsec/crowdsec` and
-`crowdsec/crowdsec-testing`. It does not define how separate, product-specific
-bouncer repositories are configured.
-
-After running the CrowdSec repository installer, rewrite its generated `.list`
-file before `apt-get update` or package installation:
+use the normal CrowdSec installation script. The script configures the
+Packagecloud apt repository as **`any/any`**; users must not select a Debian or
+Ubuntu codename or rewrite the generated source.
 
 ```bash
 curl -s https://install.crowdsec.net | sudo sh
-sudo sed -i -E \
-  's#(packagecloud.io/crowdsec/[^/]+)/(debian|ubuntu)/ [^ ]+#\1/any/ any#' \
-  /etc/apt/sources.list.d/crowdsec_*.list
-sudo apt-get update
-apt-cache policy crowdsec
 sudo apt-get install -y crowdsec
 ```
 
-The rewrite changes source entries from:
+If repository provenance needs checking, confirm that the source created by the
+installer contains `/any/ any main` and that apt selects it:
 
-```text
-https://packagecloud.io/crowdsec/<repository>/debian/ <codename> main
+```bash
+grep -R 'packagecloud.io/crowdsec/.*/any/ any main' /etc/apt/sources.list.d/
+apt-cache policy crowdsec
 ```
 
-or its `/ubuntu/` equivalent to:
-
-```text
-https://packagecloud.io/crowdsec/<repository>/any/ any main
-```
-
-Then run `sudo apt-get update` and use `apt-cache policy <package>` to confirm
-that the selected package comes from `<repository>/any any/main` before
-installing it. Do not substitute another Debian or Ubuntu codename as a
-compatibility workaround.
+If that check shows `/debian/ <codename>` or `/ubuntu/ <codename>`, do not treat
+it as the expected installer output; investigate the installer or stale source
+file instead of documenting a manual codename substitution.
 
 On RHEL-family systems, use the normal installer and dnf path:
 
