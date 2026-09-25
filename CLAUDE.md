@@ -49,7 +49,7 @@ All depth lives in `references/<area>/`, organized by the axis that fits the are
 
 | Dir | Organized by | Notes |
 |---|---|---|
-| `install/` | **platform** (one file each) | `bare-metal.md` (apt/dnf + systemd), `docker.md`, `kubernetes.md`, `console.md` (enrollment) — install mechanics genuinely diverge per platform. |
+| `install/` | **platform** (one file each) | `bare-metal.md` (apt/dnf + systemd), `docker.md`, `kubernetes.md`, `pfsense.md`, `console.md` (enrollment) — install mechanics genuinely diverge per platform. |
 | `configure/` | **config domain** | `acquisition`, `hub`, `profiles`, `notifications`, `allowlists`; platforms merged inline. `configure/bouncers/` nests one level by **service type** (`firewall`, `web-servers`). |
 | `operate/` | **task** | `health-check`, `upgrades`, `multi-server`. |
 | `appsec/` | **lifecycle** | `overview` → `deploy` → `configure` → `troubleshoot` (the WAF/AppSec feature silo). |

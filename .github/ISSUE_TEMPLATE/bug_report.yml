@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in the skill is wrong, stale, or doesn't work
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This tracker is for the **skill** — its instructions, reference docs, and packaging.
+        For problems with CrowdSec itself, open an issue on
+        [crowdsecurity/crowdsec](https://github.com/crowdsecurity/crowdsec/issues).
+
+  - type: input
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the skill. Free text — a path, a feature, or a rough description.
+      placeholder: install · configure · bouncers · WAF/AppSec · operate · debug · migrate · service-api · packaging
+    validations:
+      required: true
+
+  - type: input
+    id: doc
+    attributes:
+      label: Which file?
+      description: Path to the reference doc, if you know it.
+      placeholder: skills/crowdsec/references/install/docker.md
+    validations:
+      required: false
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What the skill told you to do, and what actually happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should have happened
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Where you ran it.
+      placeholder: bare-metal/systemd · Docker · Kubernetes/Helm · pfSense/OPNsense · not environment-specific
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: CrowdSec version
+      description: Output of `cscli version`, if relevant.
+      placeholder: "1.8.1"
+    validations:
+      required: false
+
+  - type: input
+    id: agent
+    attributes:
+      label: Agent
+      placeholder: Claude Code 2.x / Codex / Claude.ai web
+    validations:
+      required: false
