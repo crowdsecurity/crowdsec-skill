@@ -126,9 +126,14 @@ sudo apt-get install -y haproxy crowdsec-haproxy-spoa-bouncer
 
 Like nginx, the package **self-registers its bouncer + LAPI key** (`cs-spoa-bouncer-<timestamp>`) into its config — do not run `cscli bouncers add`. It ships:
 - `/etc/crowdsec/bouncers/crowdsec-spoa-bouncer.yaml` — bouncer settings (YAML).
-- `/etc/haproxy/crowdsec.cfg` — the SPOE message/agent definition (use as-is).
-- `/usr/share/doc/crowdsec-haproxy-spoa-bouncer/examples/` — example `haproxy.cfg`.
+- `/usr/share/doc/crowdsec-haproxy-spoa-bouncer/examples/` — example `haproxy.cfg` and `crowdsec.cfg` (the SPOE message/agent definition, use as-is).
 - systemd unit **`crowdsec-spoa-bouncer.service`** (note: name ≠ package name); SPOA listens on `0.0.0.0:9000` + a unix socket.
+
+Packages after 0.4.0 don't touch `/etc/haproxy` (0.4.0 and older copied `crowdsec.cfg` there). Put the SPOE file in place:
+
+```bash
+[ -e /etc/haproxy/crowdsec.cfg ] || sudo cp /usr/share/doc/crowdsec-haproxy-spoa-bouncer/examples/crowdsec.cfg /etc/haproxy/crowdsec.cfg
+```
 
 ### Bouncer config — `/etc/crowdsec/bouncers/crowdsec-spoa-bouncer.yaml`
 
@@ -190,6 +195,7 @@ sudo cscli metrics show appsec    # vpatch-CVE-2017-9841 → Triggered/Blocked
 
 - **haproxy 3.1+ lua warning:** without `tune.lua.bool-sample-conversion normal` in `global`, haproxy logs an ambiguity warning and defaults to legacy behavior. Set it explicitly, before any `lua-load`.
 - **Example config hostnames:** the shipped example assumes Docker compose (`whoami:2020`, `spoa:9000`). Bare-metal must use `127.0.0.1`, or haproxy fails to resolve and the SPOE filter errors out (`set-on-error` → fail-open `allow`).
+- **`/etc/haproxy/crowdsec.cfg` missing** (haproxy refuses to start/reload on the `filter spoe` line): the package doesn't install it after 0.4.0, and rpm upgrades up to 0.4.0 delete it even when modified. Restore it from a backup or the examples dir.
 - **`crowdsec-spoa` backend must be `mode tcp`** — it carries the SPOE protocol, not HTTP. `option http-buffer-request` is correctly ignored there.
 - **Inband vs out-of-band blocking:** only **inband** rules (e.g. `vpatch-*`) return 403 at request time. The health-check path `GET /crowdsec-test-...` triggers `crowdsecurity/appsec-generic-test`, which is **out-of-band** in `appsec-default` — it raises an alert/decision asynchronously and does **not** 403 inline. Use the CVE path above as the inline WAF test. (See [../../appsec/deploy.md](../../appsec/deploy.md).)
 
