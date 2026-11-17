@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `README.md` — **Reference docs** index linking each `references/` area.
 
 ### Changed
+- `crowdsec-service-api`: the SAPI key is read from `CROWDSEC_SAPI_KEY` only; the skill no
+  longer reads or writes `~/.config/crowdsec/sapi_key`.
 - `SKILL.md` — bot-detection routing rows, boundary row, trigger phrases in `description`,
   and a new **Step 1.6 — Feature compatibility** table holding minimum engine versions and
   feature prerequisites in one place.
