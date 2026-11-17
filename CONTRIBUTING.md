@@ -5,7 +5,7 @@ environments are the most useful contributions.
 
 ## Before you open a PR
 
-Authoring conventions for this skill live in [CLAUDE.md](CLAUDE.md) — writing style,
+Authoring conventions for this skill live in [.claude/CLAUDE.md](.claude/CLAUDE.md) — writing style,
 directory layout, version gating, and the `verified:` frontmatter block. Read it before
 adding or restructuring a reference doc; it is the authoritative map of where content goes.
 

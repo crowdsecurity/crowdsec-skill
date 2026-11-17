@@ -2,7 +2,7 @@
 """Report verification coverage across the CrowdSec skill's reference docs.
 
 A reference doc records when its recipes were last exercised against a real
-environment in a YAML `verified:` frontmatter block (see CLAUDE.md §
+environment in a YAML `verified:` frontmatter block (see .claude/CLAUDE.md §
 "Verification tracking"). This static checker — stdlib only, safe to run on the
 local working copy — walks the docs and reports:
 
