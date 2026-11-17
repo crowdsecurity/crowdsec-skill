@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-05-21
-    version: "1.7.8"
+  - date: 2026-11-17
+    version: "1.8.2"
     env: systemd
-    notes: "nginx bouncer path only"
+    notes: "apache explicit repo setup + install on Debian 13 (bookworm codename); nginx path last run 2026-05-21 on 1.7.8"
   - date: 2026-05-22
     version: "1.7.8"
     env: k8s
@@ -199,14 +199,21 @@ sudo cscli metrics show appsec    # vpatch-CVE-2017-9841 → Triggered/Blocked
 
 ### Install — separate repo, watch the codename
 
-The apache bouncer lives in its **own packagecloud repo** (`crowdsec/crowdsec-apache`), not the main `crowdsec/crowdsec` repo:
+The apache bouncer lives in its **own packagecloud repo** (`crowdsec/crowdsec-apache`), not the main `crowdsec/crowdsec` repo. Unlike the engine repo it has **no `any/any` source** — it is published per distro codename. Add it explicitly:
 
 ```bash
-curl -s https://packagecloud.io/install/repositories/crowdsec/crowdsec-apache/script.deb.sh | sudo bash
+OS=ubuntu CODENAME=noble     # your distro + codename; see the codename gotcha below
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://packagecloud.io/crowdsec/crowdsec-apache/gpgkey \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/crowdsec_crowdsec-apache-archive-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/crowdsec_crowdsec-apache-archive-keyring.gpg] https://packagecloud.io/crowdsec/crowdsec-apache/$OS/ $CODENAME main" \
+  | sudo tee /etc/apt/sources.list.d/crowdsec_crowdsec-apache.list
+sudo apt-get update
+apt-cache policy crowdsec-apache2-bouncer   # must show a candidate from packagecloud.io/crowdsec/crowdsec-apache
 sudo apt-get install -y crowdsec-apache2-bouncer
 ```
 
-> **Codename gotcha:** the repo script pins your exact distro codename. `crowdsec/crowdsec-apache` only builds for **LTS** codenames — on a non-LTS or brand-new release (e.g. Ubuntu 26.04 `resolute`) `apt install` fails with `Unable to locate package`. Fix: edit `/etc/apt/sources.list.d/*crowdsec-apache*.list` and replace the codename with the most recent supported LTS (e.g. `noble`), then `apt-get update`.
+> **Codename gotcha:** `crowdsec/crowdsec-apache` only builds for **LTS / stable** codenames. On a non-LTS or brand-new release (e.g. Ubuntu 26.04 `resolute`, Debian 13 `trixie`) the policy shows no candidate and `apt install` fails with `Unable to locate package`. Set `CODENAME` to the most recent supported release of the same distro (Ubuntu → `noble`, Debian → `bookworm`), rewrite the `.list` file, then `apt-get update`.
 
 The package auto-enables `mod_crowdsec` and pulls in `proxy`, `proxy_http`, `ssl`, `socache_shmcb`. The directives live in `/etc/crowdsec/bouncers/crowdsec-apache2-bouncer.conf`, which `/etc/apache2/mods-available/mod_crowdsec.conf` `Include`s.
 

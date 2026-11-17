@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fingerprint scoring, custom scenarios), `troubleshoot.md` (10 symptoms + metrics reading).
 
 ### Changed
+- Install docs (`install/bare-metal.md`, `operate/upgrades.md`, `configure/bouncers/web-servers.md`)
+  add the packagecloud repos explicitly (GPG key + apt source / dnf `.repo`) instead of piping
+  `install.crowdsec.net` or `script.deb.sh` into a root shell.
 - `SKILL.md` — bot-detection routing rows, boundary row, trigger phrases in `description`,
   and a new **Step 1.6 — Feature compatibility** table holding minimum engine versions and
   feature prerequisites in one place.

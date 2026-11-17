@@ -44,13 +44,14 @@ repo the package came from. Detect it with the version + install-source check in
 Step 1.5. If it was installed from the wrong source, add the official repo and upgrade in place —
 `apt install` (no `--purge`) keeps `/etc/crowdsec` and the DB:
 
+1. Add the signed official repo — explicit apt/dnf steps in
+   [../install/bare-metal.md](../install/bare-metal.md) §1.
+2. Install from it and restart:
+
 ```bash
-curl -s https://install.crowdsec.net | sudo sh        # adds the signed official repo
 sudo apt install crowdsec                             # or: sudo dnf install crowdsec — pulls latest
 sudo systemctl restart crowdsec
 ```
-
-Repo and post-install details: [../install/bare-metal.md](../install/bare-metal.md) §1.
 
 ## Bouncers upgrade on their own cadence
 

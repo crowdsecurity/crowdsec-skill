@@ -1,9 +1,9 @@
 ---
 verified:
-  - date: 2026-09-24
-    version: "1.8.1"
+  - date: 2026-11-17
+    version: "1.8.2"
     env: systemd
-    notes: "apt + systemd install path; Packagecloud any/any on Debian 13"
+    notes: "explicit apt repo setup (any/any) + install on Debian 13; dnf path not run"
 ---
 
 # Install — bare metal (apt/dnf + systemd)
@@ -15,36 +15,37 @@ native packages and systemd on Debian-like and RHEL-family systems.
 
 ## 1 — Add the repository and install
 
-### Debian-like systems: the installer uses Packagecloud `any/any`
+Add the signed packagecloud repository explicitly, then install with the native
+package manager. Don't pipe a remote script into a root shell.
 
-For **every Debian-like installation** — Debian, Ubuntu, and all derivatives —
-use the normal CrowdSec installation script. The script configures the
-Packagecloud apt repository as **`any/any`**; users must not select a Debian or
-Ubuntu codename or rewrite the generated source.
+### Debian-like systems (Debian, Ubuntu, derivatives) — `any/any` source
+
+The repository is published as **`any/any`**: don't substitute a Debian or Ubuntu
+codename.
 
 ```bash
-curl -s https://install.crowdsec.net | sudo sh
+sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://packagecloud.io/crowdsec/crowdsec/gpgkey \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/crowdsec_crowdsec-archive-keyring.gpg] https://packagecloud.io/crowdsec/crowdsec/any/ any main" \
+  | sudo tee /etc/apt/sources.list.d/crowdsec_crowdsec.list
+sudo apt-get update
+apt-cache policy crowdsec        # candidate must come from packagecloud.io/crowdsec/crowdsec/any any/main
 sudo apt-get install -y crowdsec
 ```
 
-If repository provenance needs checking, confirm that the source created by the
-installer contains `/any/ any main` and that apt selects it:
+### RHEL-family systems (RHEL, Rocky, Alma, Fedora, Amazon Linux) — *untested*
 
 ```bash
-grep -R 'packagecloud.io/crowdsec/.*/any/ any main' /etc/apt/sources.list.d/
-apt-cache policy crowdsec
-```
-
-If that check shows `/debian/ <codename>` or `/ubuntu/ <codename>`, do not treat
-it as the expected installer output; investigate the installer or stale source
-file instead of documenting a manual codename substitution.
-
-On RHEL-family systems, use the normal installer and dnf path:
-
-```bash
-curl -s https://install.crowdsec.net | sudo sh
+curl -fsSL "https://packagecloud.io/install/repositories/crowdsec/crowdsec/config_file.repo?os=rpm_any&dist=rpm_any&source=script" \
+  | sudo tee /etc/yum.repos.d/crowdsec_crowdsec.repo
+sudo dnf makecache --repo crowdsec_crowdsec
 sudo dnf install crowdsec
 ```
+
+The `.repo` file is plain configuration (`baseurl`, `gpgkey`, `repo_gpgcheck`) —
+read it before installing.
 
 What this lays down:
 
@@ -58,7 +59,7 @@ What this lays down:
   the service fail *before* start, and `systemctl reload` also runs `-t` first —
   a broken acquisition file blocks the reload (you keep the old config running).
 
-The installer auto-runs `cscli setup`, which **detects running services and log
+The package's post-install runs `cscli setup`, which **detects running services and log
 files** and generates per-service acquisition under `/etc/crowdsec/acquis.d/`
 (e.g. `setup.linux.yaml`, `setup.sshd.yaml`, `setup.nginx.yaml`). It also
 installs matching hub collections and enrolls CAPI (community blocklist).
