@@ -43,11 +43,11 @@ is enrolled **and** subscribed to the list. The enrollment half lives in the
 
 Every call here hits production and can change what subscribed engines enforce.
 
-**1 — Resolve the key.** Never echo it, never write it anywhere but the file
-below:
+**1 — Resolve the key.** Read it from the `CROWDSEC_SAPI_KEY` environment
+variable only. Never echo it, never write it to disk:
 ```bash
-KEY="${CROWDSEC_SAPI_KEY:-$(cat ~/.config/crowdsec/sapi_key 2>/dev/null)}"
-[ -n "$KEY" ] || echo "No key: export CROWDSEC_SAPI_KEY or store it in ~/.config/crowdsec/sapi_key (chmod 0600)"
+KEY="$CROWDSEC_SAPI_KEY"
+[ -n "$KEY" ] || echo "No key: ask the user to export CROWDSEC_SAPI_KEY and restart the session"
 ```
 
 **2 — Validate before acting** — one read call confirms the key and shows *which
@@ -112,8 +112,8 @@ where `B=https://admin.api.crowdsec.net/v1`.
   (see operating contract §3–4).
 - Don't use `…/ips/bulk_overwrite` when the user means "add a few IPs" — that's
   `…/ips`. `bulk_overwrite` wipes the list first.
-- Don't print, log, or persist the API key anywhere but
-  `~/.config/crowdsec/sapi_key`. Resolve it from there or from the env var only.
+- Don't print, log, or persist the API key. Read it from `CROWDSEC_SAPI_KEY`
+  only; never ask the user to paste it into the chat or save it to a file.
 - Don't assume a cloud allowlist/blocklist is enforced just because the API call
   succeeded — the engine must be enrolled and subscribed, and it pulls on a poll
   cycle (verify locally via the `crowdsec` skill).

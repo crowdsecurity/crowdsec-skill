@@ -24,19 +24,17 @@ copy it immediately.
 
 ## Key resolution (how this skill reads it)
 
-Resolve from the environment variable first, then an optional local file. Never
-echo the key, never write it to a log, a config under version control, or any
-working directory.
+The skill reads the key from the `CROWDSEC_SAPI_KEY` environment variable only.
+It never reads key files, echoes the key, or writes it anywhere.
 
 ```bash
 B=https://admin.api.crowdsec.net/v1
-KEY="${CROWDSEC_SAPI_KEY:-$(cat ~/.config/crowdsec/sapi_key 2>/dev/null)}"
+KEY="$CROWDSEC_SAPI_KEY"
 ```
 
-Store it in one file, readable only by you:
-```bash
-install -m 0600 /dev/stdin ~/.config/crowdsec/sapi_key <<<'YOUR-KEY'
-```
+If the variable is unset, the user exports it in the shell that launches Claude
+Code (or their shell profile), then restarts the session. Don't paste the key
+into the chat.
 
 ## Validate — always the first call
 

@@ -81,7 +81,7 @@ resource group** — the axis that fits a REST API — one file each:
 
 | File | Covers |
 |---|---|
-| `authentication.md` | Key creation, `x-api-key`, key resolution (env → `~/.config/crowdsec/sapi_key`), `/info`, Python SDK pointer. |
+| `authentication.md` | Key creation, `x-api-key`, key resolution (`CROWDSEC_SAPI_KEY` env only), `/info`, Python SDK pointer. |
 | `blocklists.md` | CRUD, add/remove/bulk IPs + expiration, download, subscribers, shares, search. |
 | `allowlists.md` | CRUD, items + expiration, subscribers (cross-links the `crowdsec` skill's *local* allowlists). |
 | `integrations.md` | Firewall/appliance feeds: create (entity_type/output_format), Basic-auth content pull + pagination, decisions stream, vendor table. |
