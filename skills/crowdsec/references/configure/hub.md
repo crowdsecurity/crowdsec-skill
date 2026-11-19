@@ -8,11 +8,15 @@ verified:
     version: "1.7.8"
     env: systemd
     notes: "reproduced dangling enable-symlink → item silently not loaded → parser failure; find -xtype l fix"
+  - date: 2026-07-17
+    version: "1.7.5-174-g66ab61fc-dirty"
+    env: docker
+    notes: "hub_branch set/revert against a real pre-merge hub PR branch (crowdsecurity/hub#1826); reproduced + fixed the taint-on-revert and orphaned-item gotchas"
 ---
 
 # Configure — Hub management
 
-Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_installation/console_hub> · `cscli hub` reference <https://docs.crowdsec.net/docs/next/cscli/cscli_hub>
+Canonical docs: <https://docs.crowdsec.net/docs/next/getting_started/post_installation/console_hub> · `cscli hub` reference <https://docs.crowdsec.net/docs/next/cscli/cscli_hub> · `cscli hub branch` reference <https://docs.crowdsec.net/docs/next/cscli/cscli_hub_branch>
 
 The hub is the catalog of detection content. Items come in types — **parsers**,
 **scenarios**, **postoverflows**, **contexts**, **appsec-configs**, **appsec-rules** — and
@@ -73,6 +77,61 @@ tainted and local items** rather than clobbering them:
 level=warning msg="scenarios:crowdsecurity/http-wordpress_wpconfig is tainted, use '--force' to overwrite"
 ```
 
+## Pinning to a hub branch
+
+`cscli hub update`/`upgrade` normally read the index from the `master` branch of
+`crowdsecurity/hub`. The `cscli.hub_branch` config key overrides that, pointing the index
+fetch at any other branch — the main use case is installing content from a hub PR **before**
+it merges (e.g. a `[do-not-merge]` PR building out a new collection for feedback).
+
+```yaml
+# config.yaml
+cscli:
+  hub_branch: "<branch-name>"
+```
+
+```bash
+sudo cscli hub branch           # shows the branch currently in effect (bare "master" if unset)
+sudo cscli hub update            # re-fetches .index.json from that branch
+sudo cscli collections list -a   # items unique to that branch now show up (still not installed)
+sudo cscli collections install <name>   # install from the branch like any other hub item
+```
+
+No dedicated Docker env var exists for this — set it by editing `config.yaml` directly
+(`docker exec <name> yq e -i '.cscli.hub_branch = "<branch>"' /etc/crowdsec/config.yaml`), or
+bake the key into a custom `config.yaml` you mount, then re-run `hub update`.
+
+### Reverting leaves shared items tainted, and orphans the rest
+
+Setting `hub_branch` back (unset it, or point it at `master` again) and running `hub update`
+does **not** undo what the test branch already installed:
+
+- If the branch shipped a **newer version of an item your other collections also depend on**
+  (a shared parser, say), those collections come back **tainted** the instant you revert — the
+  on-disk file is now at a version the current index doesn't recognize:
+  ```
+  crowdsecurity/some-collection is tainted by parsers:crowdsecurity/some-shared-parser
+  ```
+  Fix it exactly like any tainted item (see above) — reinstall with `--force` to restore the
+  version the current index actually ships:
+  ```bash
+  sudo cscli parsers install crowdsecurity/some-shared-parser --force
+  ```
+- Items that **only ever existed on the test branch** can't be cleaned up with
+  `cscli <type> remove` once you've reverted — cscli no longer recognizes the name against the
+  current index (`Error: cscli collections remove: can't find '<item>' in collections`). Delete
+  the leftover files directly instead — both the enabled copy and the raw hub cache carry the
+  same basename:
+  ```bash
+  sudo find /etc/crowdsec -iname '*<item-slug>*'      # lists both the enabled file(s) and the
+                                                       # /etc/crowdsec/hub/... cached copy
+  sudo rm -f <each path found>
+  sudo cscli hub list                                  # confirm no more "Ignoring file ..." warnings
+  ```
+
+Always `hub update` once more after cleanup, and re-run `hub list` to confirm zero
+tainted/ignored entries before considering the box back to its pre-test state.
+
 ## Tainted items — detect and fix
 
 An item becomes **tainted** when its content diverges from the hub version. `cscli hub list`
@@ -128,6 +187,9 @@ sudo systemctl reload crowdsec
   recreate / `helm upgrade`) to take effect.
 - **`upgrade` silently skips your local/tainted items** — by design. Reconcile them
   deliberately with `--force` (after saving any edits to an override).
+- **`hub_branch` left pointed at a since-changed/deleted branch means every future `hub
+  update` silently tracks it** — revert it deliberately and re-run `hub update` once you're
+  done testing a branch's content; see § Pinning to a hub branch above for the cleanup steps.
 - **Dangling enable-symlinks silently drop items.** If `hub_dir` is changed in
   `config.yaml`, or a hub dir is partially restored, the enable-symlinks under
   `/etc/crowdsec/{parsers,scenarios,postoverflows,collections,...}/` can point at a
@@ -148,5 +210,5 @@ sudo systemctl reload crowdsec
 | Env | What changes |
 |---|---|
 | **systemd / bare-metal** | `cscli hub …` / `cscli <type> …` as above, then `systemctl reload crowdsec`. |
-| **Docker / compose** | Install items declaratively at start with `COLLECTIONS=`, `PARSERS=`, `SCENARIOS=`, `POSTOVERFLOWS=` env vars. Items installed only via `docker exec … cscli` are lost on container recreate unless `/etc/crowdsec` is persisted — prefer the env vars for reproducibility. |
+| **Docker / compose** | Install items declaratively at start with `COLLECTIONS=`, `PARSERS=`, `SCENARIOS=`, `POSTOVERFLOWS=` env vars. Items installed only via `docker exec … cscli` are lost on container recreate unless `/etc/crowdsec` is persisted — prefer the env vars for reproducibility. `hub_branch` has no env-var equivalent — set it via `docker exec … yq e -i '.cscli.hub_branch = "<branch>"' /etc/crowdsec/config.yaml` or bake it into a mounted `config.yaml`. |
 | **Kubernetes / Helm** | Declare hub items in the chart values (e.g. agent `collections`); `helm upgrade --reset-then-reuse-values`. Avoid imperative `cscli install` inside pods — it won't survive a reschedule. |
