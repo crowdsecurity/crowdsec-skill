@@ -3,15 +3,23 @@ verified:
   - date: 2026-11-27
     version: "1.8.2"
     env: hubtest
-    notes: "example leaky scenario overflows in a hubtest scenario test (6 events > capacity 5); debugging: explain reaches the scenario, debug: true logs pours, -dsn replay of week-old logs alerts at log time"
+    notes: "example leaky scenario overflows in a hubtest scenario test (6 events > capacity 5); debugging: explain reaches the scenario, debug: true logs pours, -dsn replay of week-old logs alerts at log time; crowdsec-local-mcp 0.9.3 scenario tools (validate, lint, stack, explain, test)"
 ---
 
 # Authoring — scenarios
 
 Canonical docs: format <https://docs.crowdsec.net/docs/next/log_processor/scenarios/format> · create <https://docs.crowdsec.net/docs/next/log_processor/scenarios/create> · taxonomy <https://github.com/crowdsecurity/hub/tree/master/taxonomy>
 
-To draft and pre-test a scenario, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`): it generates, validates and lints
-scenarios and runs them in a Docker CrowdSec test harness. The hub conventions below still apply.
+To draft and pre-test a scenario, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`):
+
+- `validate_scenario_yaml` / `lint_scenario_yaml` check the schema and labels (the linter
+  asks for `spoofable` even when it is `0`; ignore that hint).
+- `manage_scenario_stack` `start`, then `explain_scenario` (one line) and `test_scenario`
+  (several lines, returns the alerts) run against a Docker CrowdSec with the collections
+  you list; `stop` removes it.
+
+That stack ships `crowdsecurity/whitelists`: private IPs are whitelisted and produce no
+alert. Use documentation ranges (`192.0.2.0/24`) in lines you send it.
 
 ## Skeleton
 

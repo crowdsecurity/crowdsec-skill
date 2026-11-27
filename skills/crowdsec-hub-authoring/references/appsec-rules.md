@@ -3,7 +3,7 @@ verified:
   - date: 2026-11-27
     version: "1.8.2"
     env: hubtest
-    notes: "example vpatch rule + hubtest create/run --appsec with the hub docker/appsec OpenResty target and nuclei; negative control fails"
+    notes: "example vpatch rule + hubtest create/run --appsec with the hub docker/appsec OpenResty target and nuclei; negative control fails; crowdsec-local-mcp 0.9.3 tools (fetch, validate, lint, run_waf_tests positive + negative, prepare_waf_pr)"
 ---
 
 # Authoring — AppSec (WAF) rules
@@ -12,10 +12,18 @@ Canonical docs: create <https://docs.crowdsec.net/docs/next/appsec/create_rules>
 
 For deploying/operating the WAF, use the `crowdsec` skill (`references/appsec/`).
 
-To draft and pre-test a rule before the hub PR, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`): it generates a rule
-from a CVE, validates and lints it, finds existing nuclei templates, and runs a Docker
-CrowdSec + nginx + bouncer harness for false positives/negatives. The hub conventions
-below still apply.
+To draft and pre-test a rule, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`):
+
+- `generate_waf_rule` / `generate_waf_tests` return prompts; you write the rule.
+- `fetch_nuclei_exploit <CVE>` pulls the nuclei template from projectdiscovery.
+- `validate_waf_rule` checks the schema, `lint_waf_rule` gives hints.
+- `run_waf_tests` runs the nuclei template against a Docker CrowdSec + OpenResty stack
+  and fails if the request isn't blocked.
+
+It doesn't replace the rules below: validation accepts a rule that matches every request
+(`.*`, no labels). `prepare_waf_pr` needs `rule_filename` as `appsec-rules/<author>/<name>.yaml`
+(a bare name lands at the hub root), overwrites an existing test's `config.yaml`, and adds
+neither the `.md` nor the collection entry.
 
 ## Naming
 
