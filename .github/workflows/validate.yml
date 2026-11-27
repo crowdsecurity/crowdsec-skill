@@ -35,4 +35,11 @@ jobs:
       # stale or missing records. Gaps and staleness are informational and do
       # not fail the build; a malformed `verified:` block does.
       - name: Verification coverage report
-        run: python3 skills/crowdsec/scripts/check-verification.py
+        run: |
+          rc=0
+          for skill in skills/*/; do
+            echo "### ${skill}"
+            python3 skills/crowdsec/scripts/check-verification.py --root "$skill" || rc=1
+            echo
+          done
+          exit $rc

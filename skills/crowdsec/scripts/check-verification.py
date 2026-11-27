@@ -24,7 +24,7 @@ from pathlib import Path
 # skills/crowdsec/scripts/check-verification.py -> skills/crowdsec (the default --root)
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 
-CANONICAL_ENVS = {"systemd", "docker", "k8s", "sapi"}
+CANONICAL_ENVS = {"systemd", "docker", "k8s", "sapi", "hubtest"}
 REQUIRED_KEYS = ("date", "version", "env")
 OPTIONAL_KEYS = ("notes",)
 ALLOWED_KEYS = set(REQUIRED_KEYS) | set(OPTIONAL_KEYS)

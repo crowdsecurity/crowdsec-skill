@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `skills/crowdsec-hub-authoring/` — new skill for writing, testing and reviewing
+  crowdsecurity/hub items: parsers, scenarios, whitelists/postoverflows, collections and
+  contexts, AppSec rules/virtual patches, `cscli hubtest` tests and a PR review checklist.
+  Registered in `plugin.json`. Every reference doc is verified (`env: hubtest`, CrowdSec
+  1.8.2) by running its examples through `cscli hubtest` / `cscli explain`.
+- Release workflow attaches `crowdsec-hub-authoring-skill-vX.Y.Z.zip` for the claude.ai uploader.
 - `references/appsec/bot-detection/` — bot detection / AppSec challenge mode (CrowdSec 1.8):
   `overview.md` (PoW + fingerprint model, challenge envelope, event vocabulary, bouncer
   support), `deploy.md` (bundle choice, glob acquisition, bouncer wiring, four-step smoke
@@ -19,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `README.md` — **Reference docs** index linking each `references/` area.
 
 ### Changed
+- `check-verification.py` accepts `hubtest` as a canonical env; the validate workflow runs it
+  on every skill under `skills/`, not only `skills/crowdsec`.
 - `SKILL.md` — bot-detection routing rows, boundary row, trigger phrases in `description`,
   and a new **Step 1.6 — Feature compatibility** table holding minimum engine versions and
   feature prerequisites in one place.
