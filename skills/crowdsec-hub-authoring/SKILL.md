@@ -7,7 +7,10 @@ description: Use when writing, testing, or reviewing CrowdSec hub items for crow
 
 Writing and reviewing items for [crowdsecurity/hub](https://github.com/crowdsecurity/hub).
 Distilled from the CrowdSec docs, the hub's CI and lint code, and maintainer
-review comments on ~1500 merged/closed hub PRs (PR numbers cited as evidence).
+review comments on ~1500 merged/closed hub PRs.
+
+Every `#N` in this skill and its references is a **crowdsecurity/hub** pull request
+(`gh pr view N --repo crowdsecurity/hub`), cited as the evidence for a rule.
 
 For installing, configuring or debugging a running CrowdSec, use the `crowdsec` skill.
 
