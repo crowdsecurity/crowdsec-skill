@@ -3,7 +3,7 @@ verified:
   - date: 2026-11-27
     version: "1.8.2"
     env: hubtest
-    notes: "example parser via hubtest (syslog + non-syslog log_type); anchored pattern drops trailing-text line; cscli explain --log/--file and hubtest explain"
+    notes: "example parser via hubtest (syslog + non-syslog log_type); anchored pattern drops trailing-text line; cscli explain --log/--file and hubtest explain; grok debugging steps on a broken pattern (explain, debug: true, GREEDYDATA bisect)"
 ---
 
 # Authoring — parsers
@@ -158,3 +158,18 @@ statics:
 cscli explain --file sample.log --type syslog -v       # against installed items
 cscli hubtest explain <test>                            # in the hub repo
 ```
+
+When a line doesn't parse:
+
+1. `cscli explain --log '<line>' --type <type> -v` shows which stage stopped (🔴) and
+   what s00 produced: check that `evt.Parsed.program` matches your `filter` and that
+   `evt.Parsed.message` is the text your pattern expects.
+2. Set `debug: true` on the parser locally (never committed) and replay the line: the log
+   prints `Grok "<NAME>" didn't return data on "<message>"` for each node that failed.
+3. Bisect the pattern: keep the anchor, replace everything after a prefix with
+   `%{GREEDYDATA:rest}`, and move the cut point until the node turns 🟢. `rest` then
+   shows the text the next token must match.
+4. Check what a reused pattern accepts. Base patterns (`IP`, `USERNAME`, `IPORHOST`,
+   `GREEDYDATA`, …) are built into the engine
+   ([`pkg/grok/base.go`](https://github.com/crowdsecurity/crowdsec/blob/master/pkg/grok/base.go));
+   service patterns (`NGINXACCESS`, `SSHD_*`, …) live in `/etc/crowdsec/patterns/`.

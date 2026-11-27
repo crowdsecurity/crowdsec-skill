@@ -12,14 +12,23 @@ Canonical docs: create <https://docs.crowdsec.net/docs/next/appsec/create_rules>
 
 For deploying/operating the WAF, use the `crowdsec` skill (`references/appsec/`).
 
+To draft and pre-test a rule before the hub PR, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`): it generates a rule
+from a CVE, validates and lints it, finds existing nuclei templates, and runs a Docker
+CrowdSec + nginx + bouncer harness for false positives/negatives. The hub conventions
+below still apply.
+
 ## Naming
 
 | Prefix | For |
 |---|---|
-| `vpatch-CVE-YYYY-NNNN` | one vulnerability (242 rules in hub); test named `CVE-YYYY-NNNN`/`vpatch-CVE-…` |
+| `vpatch-CVE-YYYY-NNNN` | one vulnerability; test named `CVE-YYYY-NNNN`/`vpatch-CVE-…` |
 | `crs-` | OWASP CRS bridge |
 | `generic-` | behavioral, not tied to one CVE |
 | `experimental-` | detects, never blocks (loaded out of band) |
+
+Ship a same-name `.md` next to the rule (`appsec-rules/<author>/<name>.md`): what it
+detects, the CVE or advisory link, affected versions. Most existing `vpatch-*` rules
+lack one; new rules include it. Format: [collections-and-docs.md](./collections-and-docs.md).
 
 ## Rule skeleton
 

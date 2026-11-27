@@ -14,11 +14,13 @@ reproduction (hubtest, `cscli explain`, a crafted log line) — don't assert fro
 
 ## Before reading the diff
 
-- [ ] Does an item for this product already exist (`grep -ri <product> parsers scenarios collections`)? Open PRs for the same issue? → extend / dedupe / pick the oldest PR (#1917, #1762, #1944).
-- [ ] Is it a public product (not a personal app/fork)? (#625, #1635)
-- [ ] One service per PR, no unrelated files (README, workflows, taxonomy, `.index.json`) (#713, #1798, #1854).
-- [ ] PR template checklist present and honest, AI box ticked if relevant (#1606).
-- [ ] CI state: fork PRs need workflow approval (`action_required`); the PR may also conflict with recent merges.
+Reasons and precedents: [overview.md](./overview.md).
+
+- [ ] No existing item or open PR for this product (extend / dedupe / pick the oldest PR).
+- [ ] Public product, not a personal app/fork.
+- [ ] One service per PR, no unrelated files (README, workflows, taxonomy, `.index.json`).
+- [ ] PR template checklist present and honest, AI box ticked if relevant.
+- [ ] CI state: fork PRs need workflow approval (`action_required`); no conflict with recent merges.
 
 ## Naming
 

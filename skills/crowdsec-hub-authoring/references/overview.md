@@ -13,7 +13,7 @@ Canonical docs: <https://docs.crowdsec.net/docs/next/contributing/contributing_h
 This section covers **writing** hub items (parsers, scenarios, whitelists,
 postoverflows, collections, contexts, AppSec rules) and getting them merged
 into `crowdsecurity/hub`. It is distilled from the docs, the hub's CI and lint
-code, and maintainer review comments on ~1500 merged/closed PRs.
+code, and maintainer review comments on merged and closed PRs.
 
 | Writing a… | Read |
 |---|---|

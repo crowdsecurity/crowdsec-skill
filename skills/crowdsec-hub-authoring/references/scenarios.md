@@ -3,12 +3,15 @@ verified:
   - date: 2026-11-27
     version: "1.8.2"
     env: hubtest
-    notes: "example leaky scenario overflows in a hubtest scenario test (6 events > capacity 5)"
+    notes: "example leaky scenario overflows in a hubtest scenario test (6 events > capacity 5); debugging: explain reaches the scenario, debug: true logs pours, -dsn replay of week-old logs alerts at log time"
 ---
 
 # Authoring — scenarios
 
 Canonical docs: format <https://docs.crowdsec.net/docs/next/log_processor/scenarios/format> · create <https://docs.crowdsec.net/docs/next/log_processor/scenarios/create> · taxonomy <https://github.com/crowdsecurity/hub/tree/master/taxonomy>
+
+To draft and pre-test a scenario, use the [crowdsec-local-mcp](https://github.com/crowdsecurity/crowdsec-local-mcp) MCP server (`uvx --from crowdsec-local-mcp init claude-code`): it generates, validates and lints
+scenarios and runs them in a Docker CrowdSec test harness. The hub conventions below still apply.
 
 ## Skeleton
 
@@ -104,3 +107,13 @@ range…). Reuse existing scope names for consistency (#684).
 - Is the signal consistent across deployments? (spam-score configurable → #830 closed)
 - Is it bespoke to one deployment? → local config, not hub (#1870, #625).
 - Don't modify default values of existing popular scenarios to fit your setup (#245).
+
+## Debugging
+
+- `cscli explain --log '<line>' --type <type> -v` ends with the scenarios the event
+  reaches: confirms the `filter` matches.
+- `debug: true` on the scenario (locally, never committed): the log shows each pour,
+  the bucket creation and the overflow.
+- Replay a log file through the full engine ([testing.md § Replay outside hubtest](./testing.md#replay-outside-hubtest)),
+  then `cscli alerts list`. Buckets run on the log timestamps, so `leakspeed` and
+  `blackhole` behave the same on old logs.
