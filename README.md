@@ -19,7 +19,7 @@ component — across bare-metal/systemd, Docker, pfSense/OPNsense, and Kubernete
 
 ---
 
-This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)**:
+This plugin bundles **three [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills)**:
 
 - **`crowdsec`** — a hands-on CrowdSec operator. Stand up an engine, wire a
   bouncer, enable the WAF, or figure out why nothing's getting blocked. It knows
@@ -29,6 +29,10 @@ This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-
   on your behalf with your API key: create and populate blocklists/allowlists,
   wire firewall/appliance integrations, pull remediation ROI metrics, and manage
   org-level decisions — every state change gated behind an explicit confirmation.
+- **`crowdsec-hub-authoring`** — writes, tests and reviews items for
+  [crowdsecurity/hub](https://github.com/crowdsecurity/hub): parsers, scenarios,
+  whitelists/postoverflows, collections, contexts, AppSec rules and their
+  `cscli hubtest` tests, following the conventions maintainers enforce in review.
 
 
 ## What it covers
@@ -54,6 +58,18 @@ This plugin bundles **two [Agent Skills](https://docs.claude.com/en/docs/claude-
 | **Integrations** | firewall/appliance feeds (Palo Alto, Fortinet, Cisco, F5, Sophos, pfSense/OPNsense…) · paginated Basic-auth content pull |
 | **Metrics** | remediation ROI (traffic dropped, bytes/egress saved, attacks prevented) |
 | **Decisions** | org-level decisions + aggregated (read/manage) |
+
+**`crowdsec-hub-authoring` (hub contributions):**
+
+| Area | Covered |
+|---|---|
+| **Parsers** | stages s00/s01/s02 · grok / `UnmarshalJSON` · `source_ip` · timestamps |
+| **Scenarios** | leaky/trigger buckets · `capacity` / `leakspeed` / `blackhole` · labels & taxonomy |
+| **False positives** | app whitelists · postoverflows |
+| **Packaging** | collections · contexts · same-name `.md` docs · acquisition examples |
+| **AppSec rules** | WAF rules · `vpatch-CVE-…` virtual patches · nuclei tests |
+| **Testing** | `cscli hubtest` · `parser.assert` / `scenario.assert` · CI gates |
+| **Review** | PR review checklist · naming · why hub PRs get rejected |
 
 ## Install
 

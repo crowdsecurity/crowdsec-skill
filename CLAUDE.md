@@ -37,8 +37,9 @@ If you are uncertain about any fact, statistic, date, or piece of technical info
 
 ## Content structure
 
-The plugin ships **two skills** under `skills/`: `crowdsec` (operational — local
-engine/cscli/bouncers/WAF) and `crowdsec-service-api` (the premium Console cloud REST API). Each has
+The plugin ships **three skills** under `skills/`: `crowdsec` (operational — local
+engine/cscli/bouncers/WAF), `crowdsec-service-api` (the premium Console cloud REST API) and
+`crowdsec-hub-authoring` (writing and reviewing crowdsecurity/hub items). Each has
 its own router `SKILL.md` and `references/`. The layout below describes the `crowdsec` skill; the
 `crowdsec-service-api` layout follows in its own subsection.
 
@@ -97,6 +98,26 @@ HTTPS, not systemd/docker/k8s — so no per-platform prefixes), and recipes are 
 on the user's behalf, every mutating one gated behind explicit confirmation. Verification uses
 `env: sapi` in the `verified:` block. When you add/rename a resource file here, update this table in
 the same change.
+
+### `crowdsec-hub-authoring` skill layout
+
+`SKILL.md` is the router plus the hub's non-negotiables. `references/` is organized by **hub item
+type**, one file each, plus a cross-cutting overview and review checklist:
+
+| File | Covers |
+|---|---|
+| `overview.md` | Hub repo layout, naming/author rules, what gets rejected, CI gates. |
+| `parsers.md` | Stages, grok/JSON parsing, `source_ip`, timestamps, filters. |
+| `scenarios.md` | Bucket types and tuning, labels/behaviors/MITRE taxonomy. |
+| `whitelists-postoverflows.md` | App-level false-positive suppression in the hub. |
+| `collections-and-docs.md` | Collections, contexts, item `.md` docs, acquisition examples. |
+| `testing.md` | `cscli hubtest`, assert files, CI failures. |
+| `appsec-rules.md` | WAF rules, virtual patches, nuclei tests. |
+| `review-checklist.md` | PR review / self-review checklist. |
+
+No platform axis: the environment is a hub checkout plus `cscli hubtest`. Claims cite upstream docs,
+hub CI/lint code or the hub PRs where maintainers enforced them (by PR number). When you add/rename a
+file here, update this table in the same change.
 
 ## Testing
 

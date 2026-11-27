@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `skills/crowdsec-hub-authoring/` — new skill for writing, testing and reviewing
+  crowdsecurity/hub items: parsers, scenarios, whitelists/postoverflows, collections and
+  contexts, AppSec rules/virtual patches, `cscli hubtest` tests and a PR review checklist.
+  Registered in `plugin.json`.
 - `references/appsec/bot-detection/` — bot detection / AppSec challenge mode (CrowdSec 1.8):
   `overview.md` (PoW + fingerprint model, challenge envelope, event vocabulary, bouncer
   support), `deploy.md` (bundle choice, glob acquisition, bouncer wiring, four-step smoke
