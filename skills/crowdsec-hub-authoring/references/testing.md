@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "create -> empty-assert run -> paste generated asserts -> pass; user-owned instance with -c, short --hub path, stale runtime cleanup"
+---
+
 # Authoring — hubtest
 
 Canonical docs: `cscli hubtest` <https://docs.crowdsec.net/docs/next/cscli/cscli_hubtest> · test env <https://docs.crowdsec.net/docs/next/contributing/engine/test_env> · parser test <https://docs.crowdsec.net/docs/next/log_processor/parsers/create#create-our-test>

@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "cscli hub search and cscli hubtest create; CI gates not exercised"
+---
+
 # Authoring hub items — overview
 
 Canonical docs: <https://docs.crowdsec.net/docs/next/contributing/contributing_hub> · parsers <https://docs.crowdsec.net/docs/next/log_processor/parsers/create> · scenarios <https://docs.crowdsec.net/docs/next/log_processor/scenarios/create> · repo <https://github.com/crowdsecurity/hub>

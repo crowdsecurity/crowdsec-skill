@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "example vpatch rule + hubtest create/run --appsec with the hub docker/appsec OpenResty target and nuclei; negative control fails"
+---
+
 # Authoring — AppSec (WAF) rules
 
 Canonical docs: create <https://docs.crowdsec.net/docs/next/appsec/create_rules> · syntax <https://docs.crowdsec.net/docs/next/appsec/rules_syntax> · contributing <https://docs.crowdsec.net/docs/next/contributing/hub/appsec_rules>

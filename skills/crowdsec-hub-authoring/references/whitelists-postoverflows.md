@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "parser whitelist (positive + path-traversal/POST negatives) and Matrix postoverflow with crowdsecurity/http-probing via hubtest"
+---
+
 # Authoring — whitelists and postoverflows
 
 Canonical docs: format <https://docs.crowdsec.net/docs/next/log_processor/whitelist/format> · expr-based <https://docs.crowdsec.net/docs/next/log_processor/whitelist/expr_based_whitelist> · postoverflow <https://docs.crowdsec.net/docs/next/log_processor/whitelist/postoverflow_based_whitelist>
@@ -60,6 +68,11 @@ whitelist:
 ```
 
 One rule per scenario. `all()` only sees the last `cache_size` events of the alert.
+
+Test it as a scenario test with the scenario and the postoverflow loaded. A whitelisted
+overflow still appears in hubtest `results`, and the generated asserts don't check the
+flag: add `results[N].Overflow.Whitelisted == true` for the benign source and
+`== false` for a malicious control source by hand.
 
 ## IP/range whitelists
 

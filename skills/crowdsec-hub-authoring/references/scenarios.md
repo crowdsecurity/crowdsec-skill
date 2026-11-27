@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "example leaky scenario overflows in a hubtest scenario test (6 events > capacity 5)"
+---
+
 # Authoring — scenarios
 
 Canonical docs: format <https://docs.crowdsec.net/docs/next/log_processor/scenarios/format> · create <https://docs.crowdsec.net/docs/next/log_processor/scenarios/create> · taxonomy <https://github.com/crowdsecurity/hub/tree/master/taxonomy>

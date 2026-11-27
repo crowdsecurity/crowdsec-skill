@@ -116,7 +116,10 @@ type**, one file each, plus a cross-cutting overview and review checklist:
 | `review-checklist.md` | PR review / self-review checklist. |
 
 No platform axis: the environment is a hub checkout plus `cscli hubtest`. Claims cite upstream docs,
-hub CI/lint code or the hub PRs where maintainers enforced them (by PR number). When you add/rename a
+hub CI/lint code or the hub PRs where maintainers enforced them (by PR number). Verification uses
+`env: hubtest`: run the doc's example items and commands with `cscli hubtest` (and `cscli explain`)
+in a hub checkout, with a user-owned CrowdSec instance passed via `-c`; AppSec tests need the hub's
+`docker/appsec` target and `nuclei`. When you add/rename a
 file here, update this table in the same change.
 
 ## Testing
@@ -161,7 +164,8 @@ Rules:
 - Use ISO 8601 dates so the checker can sort and age them.
 - Don't pre-seed unverified docs with empty blocks; absence *is* the "never verified" signal.
 
-`skills/crowdsec/scripts/check-verification.py` (stdlib-only, safe to run locally) reports coverage,
+`skills/crowdsec/scripts/check-verification.py --root skills/<skill>` (stdlib-only, safe to run
+locally; CI runs it on every skill) reports coverage,
 lists docs with no block, flags entries older than 180 days, and fails on a malformed block.
 
 

@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "example collection and context loaded as local items (cscli inspect, crowdsec -t); acquisition examples not exercised"
+---
+
 # Authoring — collections, contexts and `.md` docs
 
 Canonical docs: collections <https://docs.crowdsec.net/docs/next/log_processor/collections/format> · alert context <https://docs.crowdsec.net/docs/next/log_processor/alert_context/intro>

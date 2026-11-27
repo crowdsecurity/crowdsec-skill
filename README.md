@@ -100,7 +100,8 @@ skill-installer crowdsecurity/crowdsec-skill
 
 **On Claude.ai (web)**
 
-Download `crowdsec-skill-vX.Y.Z.zip` from the
+Download `crowdsec-skill-vX.Y.Z.zip` (and, for hub contributors,
+`crowdsec-hub-authoring-skill-vX.Y.Z.zip`) from the
 [latest release](https://github.com/crowdsecurity/crowdsec-skill/releases/latest)
 and upload it in the web skill uploader.
 

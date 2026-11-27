@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "example parser via hubtest (syslog + non-syslog log_type); anchored pattern drops trailing-text line; cscli explain --log/--file and hubtest explain"
+---
+
 # Authoring — parsers
 
 Canonical docs: format <https://docs.crowdsec.net/docs/next/log_processor/parsers/format> · create <https://docs.crowdsec.net/docs/next/log_processor/parsers/create> · patterns <https://docs.crowdsec.net/docs/next/log_processor/parsers/patterns-documentation> · expr helpers <https://docs.crowdsec.net/docs/next/expr/intro>

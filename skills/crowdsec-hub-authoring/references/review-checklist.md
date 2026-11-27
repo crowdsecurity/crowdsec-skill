@@ -1,3 +1,11 @@
+---
+verified:
+  - date: 2026-11-27
+    version: "1.8.2"
+    env: hubtest
+    notes: "cscli explain --log -v and TZ=UTC hubtest run commands"
+---
+
 # Authoring — review checklist
 
 Use it to review a hub PR, or to self-review before opening one. Ordered by how
